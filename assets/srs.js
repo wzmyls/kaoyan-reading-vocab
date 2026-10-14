@@ -21,6 +21,39 @@
     shuffleNew: false
   };
 
+  var LEARNING_CREDIT = 0.1;   // 学习中：给一点进度分（已经认识了，但还不牢）
+
+  /* 单张卡的记忆强度：未学 0 / 学习中 0.1 / 复习中「间隔÷21天」，满 21 天记 100% */
+  function memoryStrength(c) {
+    if (!c || c.state === 'new') return 0;
+    if (c.state === 'learning') return LEARNING_CREDIT;
+    return Math.min(1, Math.max(0, (c.ivl || 0) / MASTER_IVL));
+  }
+
+  /* 总体掌握度 = 所有卡片记忆强度的平均值
+     upto 不为空时，只统计在那之前已经学过的卡片（用来回填历史曲线） */
+  function masteryScore(words, store, now, upto) {
+    now = now == null ? Date.now() : now;
+    var cards = store.cards || {};
+    var sum = 0, touchedN = 0, denom = 0;
+    for (var i = 0; i < words.length; i++) {
+      var w = words[i];
+      var c = cards[w.w];
+      if (c && c.suspended) continue;       // 暂停的词不计入分母
+      denom++;
+      if (!c || c.state === 'new') continue;
+      if (upto != null && !(c.last > 0 && c.last <= upto)) continue;
+      touchedN++;
+      sum += memoryStrength(c);
+    }
+    return {
+      score: denom ? sum / denom : 0,
+      touched: denom ? touchedN / denom : 0,
+      touchedN: touchedN,
+      total: denom
+    };
+  }
+
   var GRADE_LABEL = ['忘记', '模糊', '认识', '太简单'];
 
   function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
@@ -364,6 +397,7 @@
     GRADE_LABEL: GRADE_LABEL,
     clamp: clamp, todayKey: todayKey, newCard: newCard, isMastered: isMastered,
     dateStr: dateStr,
+    memoryStrength: memoryStrength, masteryScore: masteryScore,
     schedule: schedule, scheduleRaw: scheduleRaw,
     focusWeight: focusWeight, isFocus: isFocus,
     previewIntervals: previewIntervals, humanizeDelta: humanizeDelta,

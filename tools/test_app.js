@@ -289,6 +289,39 @@ ok('卡片带「重点」标记', (function () { click('reveal'); return view().
 ok('页面显示重点权重', view().indexOf('间隔×0.5') >= 0);
 
 console.log('— 进度持久化 —');
+console.log('— 掌握度折线图 —');
+T('切到统计页', () => tabs[3]._on.click());
+ok('渲染出 SVG', view().indexOf('<svg') >= 0 && view().indexOf('class="chart"') >= 0);
+ok('有折线路径', view().indexOf('class="line') >= 0);
+ok('有学过的占比区域', view().indexOf('class="area"') >= 0);
+ok('显示当前掌握度', view().indexOf('当前总体掌握度') >= 0);
+ok('显示学过多少个词', /学过 \d+\/\d+ 个词/.test(view()), (view().match(/学过 \d+\/\d+ 个词/) || [])[0]);
+ok('默认 30 天窗口', (view().match(/<circle/g) || []).length === 30, (view().match(/<circle/g) || []).length);
+ok('坐标轴有 0%~100% 刻度', view().indexOf('>0%<') >= 0 && view().indexOf('>100%<') >= 0);
+T('切到 14 天', () => click('chartdays', '14'));
+ok('14 天 = 14 个点', (view().match(/<circle/g) || []).length === 14, (view().match(/<circle/g) || []).length);
+T('切到 60 天', () => click('chartdays', '60'));
+ok('60 天点太密就不画圆点', (view().match(/<circle/g) || []).length === 0, (view().match(/<circle/g) || []).length);
+ok('60 天仍然有折线', view().indexOf('class="line') >= 0);
+T('切回 30 天', () => click('chartdays', '30'));
+{
+  const hist = win.__DBG().store.hist || {};
+  const keys = Object.keys(hist);
+  ok('今天已经落了快照', keys.length === 1, JSON.stringify(keys));
+  ok('快照是 [掌握度, 学过占比]', Array.isArray(hist[keys[0]]) && hist[keys[0]].length === 2, JSON.stringify(hist));
+  ok('背过词之后掌握度大于 0（' + hist[keys[0]][0] + '）', hist[keys[0]][0] > 0, JSON.stringify(hist));
+  ok('掌握度在 0~1 之间', hist[keys[0]][0] > 0 && hist[keys[0]][0] <= 1);
+  ok('估算段用虚线画（历史回填）', view().indexOf('line est') >= 0);
+  ok('图例说明估算段', view().indexOf('估算') >= 0);
+}
+ok('顶栏/统计里的掌握度与快照一致', (function () {
+  const hist = win.__DBG().store.hist;
+  const k = Object.keys(hist)[0];
+  const shown = parseInt((view().match(/font-size:20px">(\d+)%/) || [])[1], 10);
+  return Math.abs(shown / 100 - hist[k][0]) <= 0.01;
+})(), (view().match(/font-size:20px">(\d+)%/) || [])[0]);
+
+console.log('— 进度持久化 —');
 flushTimers();
 const saved = JSON.parse(mem['kaoyan_words_v1'] || '{}');
 ok('数据写进了 localStorage', !!saved.cards && Object.keys(saved.cards).length > 0,

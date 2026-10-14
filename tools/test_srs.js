@@ -154,5 +154,33 @@ ok('报告重点到期数', fq2.focusDue === 1, String(fq2.focusDue));
 const fsum = S.summarize(fw, fstore, T0);
 ok('统计里单列出重点块', fsum.focus.total === 6 && fsum.focus.due === 1, JSON.stringify(fsum.focus));
 
+console.log('— 总体掌握度 —');
+const mw = [];
+for (let i = 0; i < 10; i++) mw.push({ w: 'm' + i, y: [2015] });
+const ms = { settings: {}, cards: {}, log: {} };
+let msco = S.masteryScore(mw, ms, T0);
+ok('一张都没学 → 掌握度 0', msco.score === 0, msco.score);
+ok('学过占比也是 0', msco.touched === 0);
+
+for (let i = 0; i < 5; i++) {
+  ms.cards['m' + i] = { state: 'review', step: 0, ease: 2.5, ivl: 21, due: T0 + DAY, reps: 5, lapses: 0, last: T0 - 30 * DAY, suspended: false };
+}
+msco = S.masteryScore(mw, ms, T0);
+ok('一半已掌握 → 掌握度 50%', Math.abs(msco.score - 0.5) < 1e-9, msco.score);
+ok('学过占比 50%', Math.abs(msco.touched - 0.5) < 1e-9, msco.touched);
+
+ms.cards.m9 = { state: 'learning', step: 0, ease: 2.5, ivl: 0, due: T0, reps: 1, lapses: 0, last: T0, suspended: false };
+msco = S.masteryScore(mw, ms, T0);
+ok('学习中的卡算 10%（0.5 + 0.1/10 = 0.51）', Math.abs(msco.score - 0.51) < 1e-9, msco.score);
+
+const w1 = [{ w: 'x', y: [] }];
+const mk = ivl => ({ settings: {}, log: {}, cards: { x: { state: 'review', step: 0, ease: 2.5, ivl: ivl, due: T0, reps: 2, lapses: 0, last: T0 - 5 * DAY, suspended: false } } });
+ok('间隔 10 天 → 10/21', Math.abs(S.masteryScore(w1, mk(10), T0).score - 10 / 21) < 1e-9, S.masteryScore(w1, mk(10), T0).score);
+ok('间隔超过 21 天不溢出，封顶 100%', S.memoryStrength({ state: 'review', ivl: 365 }) === 1);
+ok('回填：那天还没学过的卡不计入', S.masteryScore(w1, mk(10), T0, T0 - 10 * DAY).score === 0);
+ok('回填：学到之后就算上', Math.abs(S.masteryScore(w1, mk(10), T0, T0).score - 10 / 21) < 1e-9);
+const s3 = { settings: {}, log: {}, cards: { x: { state: 'review', step: 0, ease: 2.5, ivl: 21, due: T0, reps: 5, lapses: 0, last: T0 - DAY, suspended: true } } };
+ok('暂停的词不计入分母', S.masteryScore([{ w: 'x', y: [] }, { w: 'y', y: [] }], s3, T0).total === 1);
+
 console.log('\n通过 ' + pass + ' 项，失败 ' + fail + ' 项');
 process.exit(fail ? 1 : 0);

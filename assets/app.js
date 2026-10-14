@@ -28,7 +28,7 @@
   /* ---------- 存储 ---------- */
   var store, lsOK = true, saveTimer = null;
   function defStore() {
-    return { v: 1, settings: {}, cards: {}, log: {}, groups: {}, custom: [], created: Date.now() };
+    return { v: 1, settings: {}, cards: {}, log: {}, groups: {}, custom: [], hist: {}, created: Date.now() };
   }
   function load() {
     var raw = null;
@@ -39,12 +39,14 @@
     store.log = store.log || {};
     store.groups = store.groups || {};
     store.custom = store.custom || [];
+    store.hist = store.hist || {};
     if (!store.settings.examDate) store.settings.examDate = isoDate(Date.now() + 60 * 86400000);
     if (!store.settings.focusYears) store.settings.focusYears = (DATA.focusYears || []).slice();
     if (store.settings.focusWeight == null) store.settings.focusWeight = 0.6;
   }
   function save() {
     if (!lsOK) return;
+    recordSnapshot();
     clearTimeout(saveTimer);
     saveTimer = setTimeout(function () {
       try { localStorage.setItem(LS_KEY, JSON.stringify(store)); }
@@ -227,7 +229,7 @@
   var ui = {
     view: 'review', deck: 'all', revealed: false,
     spell: '', spellOk: null, spellDone: false,
-    listQ: '', listFilter: 'all', groupMode: 'drill'
+    listQ: '', listFilter: 'all', groupMode: 'drill', chartDays: 30
   };
   var session = null, cur = null, q = null;
   /* ---------- 会话 ---------- */
@@ -800,6 +802,108 @@
     return h.join('');
   }
   /* ---------- 统计 ---------- */
+  /* 掌握度折线图 */
+  var CHART_DAYS = [14, 30, 60];
+  function dayStartTs(ts) {
+    var d = new Date(ts);
+    d.setHours(0, 0, 0, 0);
+    return d.getTime();
+  }
+  /* 每天存一次快照（同一天覆盖写），曲线从今往后是真实值 */
+  function recordSnapshot(now) {
+    now = now || Date.now();
+    if (!WORDS.length) return;
+    var m = S.masteryScore(WORDS, store, now);
+    store.hist = store.hist || {};
+    store.hist[S.todayKey(now)] = [Math.round(m.score * 1000) / 1000, Math.round(m.touched * 1000) / 1000];
+  }
+  /* 曲线数据：有快照用快照（真实），没有就按「那天之前学过的卡」回填（估算） */
+  function masterySeries(now, days) {
+    var pts = [];
+    var t0 = dayStartTs(now - (days - 1) * 86400000);
+    for (var t = t0; t <= now; t += 86400000) {
+      var key = S.todayKey(t);
+      var snap = store.hist && store.hist[key];
+      var d = new Date(t);
+      var v = snap ? { score: snap[0], touched: snap[1] } : S.masteryScore(WORDS, store, now, t + 86399999);
+      pts.push({
+        ts: t, label: (d.getMonth() + 1) + '/' + d.getDate(),
+        score: v.score, touched: v.touched, exact: !!snap
+      });
+    }
+    return pts;
+  }
+  function chartHtml(now) {
+    var days = ui.chartDays || 30;
+    var pts = masterySeries(now, days);
+    var n = pts.length;
+    var cur = S.masteryScore(WORDS, store, now);
+    var W = 1000, H = 240, PL = 48, PR = 18, PT = 16, PB = 30;
+    var iw = W - PL - PR, ih = H - PT - PB;
+    function X(i) { return n <= 1 ? PL + iw / 2 : PL + iw * i / (n - 1); }
+    function Y(v) { return PT + ih * (1 - Math.max(0, Math.min(1, v))); }
+    var hasEst = pts.some(function (p) { return !p.exact; });
+    var h = [];
+    h.push('<div class="panel pad" style="margin-top:12px">');
+    h.push('<div class="chart-head"><span><b style="font-size:20px">' + Math.round(cur.score * 100) + '%</b>' +
+      ' <span class="meta">当前总体掌握度 · 学过 ' + cur.touchedN + '/' + cur.total + ' 个词</span></span>');
+    h.push('<span style="flex:1"></span>');
+    h.push('<div class="tabs" style="margin:0">' + CHART_DAYS.map(function (d) {
+      return '<button data-act="chartdays" data-val="' + d + '"' + (days === d ? ' class="on"' : '') + '>' + d + '天</button>';
+    }).join('') + '</div></div>');
+    var svg = [];
+    svg.push('<svg viewBox="0 0 ' + W + ' ' + H + '" class="chart" role="img" aria-label="掌握度变化曲线">');
+    [0, 0.25, 0.5, 0.75, 1].forEach(function (v) {
+      svg.push('<line x1="' + PL + '" y1="' + Y(v).toFixed(1) + '" x2="' + (W - PR) + '" y2="' + Y(v).toFixed(1) + '" class="grid"/>');
+      svg.push('<text x="' + (PL - 8) + '" y="' + (Y(v) + 4).toFixed(1) + '" class="axis" text-anchor="end">' + Math.round(v * 100) + '%</text>');
+    });
+    if (n > 1) {
+      var area = 'M' + X(0).toFixed(1) + ',' + (PT + ih).toFixed(1);
+      for (var i = 0; i < n; i++) area += 'L' + X(i).toFixed(1) + ',' + Y(pts[i].touched).toFixed(1);
+      area += 'L' + X(n - 1).toFixed(1) + ',' + (PT + ih).toFixed(1) + 'Z';
+      svg.push('<path d="' + area + '" class="area"/>');
+    }
+    /* 折线：快照段实线，回填段虚线 */
+    var segs = [], seg = null;
+    for (var j = 0; j < n; j++) {
+      if (!seg || seg.exact !== pts[j].exact) {
+        seg = { exact: pts[j].exact, idx: [] };
+        if (j > 0) seg.idx.push(j - 1);
+        seg.idx.push(j);
+        segs.push(seg);
+      } else seg.idx.push(j);
+    }
+    segs.forEach(function (sg) {
+      if (sg.idx.length < 2) return;
+      var d = sg.idx.map(function (k, m) {
+        return (m ? 'L' : 'M') + X(k).toFixed(1) + ',' + Y(pts[k].score).toFixed(1);
+      }).join('');
+      svg.push('<path d="' + d + '" class="line' + (sg.exact ? '' : ' est') + '"/>');
+    });
+    if (n <= 31) {
+      for (var k2 = 0; k2 < n; k2++) {
+        svg.push('<circle cx="' + X(k2).toFixed(1) + '" cy="' + Y(pts[k2].score).toFixed(1) +
+          '" r="3" class="dot' + (pts[k2].exact ? '' : ' est') + '"><title>' + pts[k2].label + '：掌握度 ' +
+          Math.round(pts[k2].score * 100) + '%，学过 ' + Math.round(pts[k2].touched * 100) + '%' +
+          (pts[k2].exact ? '' : '（估算）') + '</title></circle>');
+      }
+    }
+    var step = Math.max(1, Math.round(n / 7));
+    for (var k3 = 0; k3 < n; k3 += step) {
+      svg.push('<text x="' + X(k3).toFixed(1) + '" y="' + (H - 8) + '" class="axis" text-anchor="middle">' + pts[k3].label + '</text>');
+    }
+    if (n > 1 && (n - 1) % step !== 0) {
+      svg.push('<text x="' + X(n - 1).toFixed(1) + '" y="' + (H - 8) + '" class="axis" text-anchor="middle">' + pts[n - 1].label + '</text>');
+    }
+    svg.push('</svg>');
+    h.push(svg.join(''));
+    h.push('<div class="legend"><span><i class="sw line"></i>总体掌握度</span>' +
+      '<span><i class="sw area"></i>学过的词占比</span>' +
+      (hasEst ? '<span class="meta">虚线那几天是按当前记忆强度回填的估算，今天起是真实记录</span>' : '') + '</div>');
+    h.push('<div class="meta" style="margin-top:6px">算法：每张卡按记忆强度加权（未学 0 分、学习中 10%、复习中间隔越接近 21 天越接近满分），再对所有词取平均。</div>');
+    h.push('</div>');
+    return h.join('');
+  }
   function statsHtml() {
     var now = Date.now();
     var sum = S.summarize(WORDS, store, now);
@@ -825,6 +929,7 @@
     h.push('</div>');
     var examTs = store.settings.examDate ? new Date(store.settings.examDate + 'T09:00:00').getTime() : (now + 60 * 86400000);
     var daysLeft = Math.max(0, Math.ceil((examTs - now) / 86400000));
+    h.push(chartHtml(now));
     h.push(planHtml(now));
     h.push('<h3 class="sec">倒计时与阶段安排</h3>');
     h.push('<div class="panel pad">');
@@ -999,6 +1104,7 @@
       document.querySelectorAll('#tabs button').forEach(function (x) { x.classList.toggle('on', x.dataset.view === 'list'); });
       render();
     }
+    else if (act === 'chartdays') { ui.chartDays = parseInt(val, 10) || 30; render(); }
     else if (act === 'gnext') { ui.groupMode = 'drill'; newQuestion(); render(); }
     else if (act === 'gpick') pickGroup(val);
     else if (act === 'toggle-master') {
@@ -1129,6 +1235,8 @@
   /* ---------- 启动 ---------- */
   load();
   prepare();
+  recordSnapshot();   /* 首次打开也记一笔今天的掌握度，曲线才有起点 */
+  save();
   if (!lsOK) showWarn('这个页面无法保存进度（浏览器限制了本地存储）。请用文件夹里的「启动.bat」打开，或改用导出/导入备份。');
   document.querySelectorAll('#tabs button').forEach(function (b) {
     b.addEventListener('click', function () {
