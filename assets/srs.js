@@ -31,6 +31,11 @@
     return d.getFullYear() + '-' + (m < 10 ? '0' + m : m) + '-' + (day < 10 ? '0' + day : day);
   }
 
+  function dateStr(ts) {
+    var d = new Date(ts), p = function (n) { return (n < 10 ? '0' : '') + n; };
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+  }
+
   function newCard(ts) {
     return {
       state: 'new',        // new | learning | review
@@ -230,12 +235,81 @@
     return buckets;
   }
 
+  /* 由「目标日期」反推每天要学多少新词
+     opts: {targetDate:'YYYY-MM-DD', reserveDays, years:[..], now} */
+  function makePlan(words, store, opts) {
+    opts = opts || {};
+    var now = opts.now == null ? Date.now() : opts.now;
+    var target = opts.targetDate
+      ? new Date(opts.targetDate + 'T23:59:59').getTime()
+      : now + 60 * DAY;
+    var reserve = opts.reserveDays == null ? 7 : Math.max(0, opts.reserveDays);
+    var years = opts.years || null;
+    var cards = store.cards || {};
+    var fresh = 0, learning = 0, review = 0, total = 0;
+    for (var i = 0; i < words.length; i++) {
+      var w = words[i];
+      if (years && years.length) {
+        var hit = false;
+        for (var j = 0; j < (w.y || []).length; j++) {
+          if (years.indexOf(w.y[j]) >= 0) { hit = true; break; }
+        }
+        if (!hit) continue;
+      }
+      total++;
+      var c = cards[w.w];
+      if (!c || c.state === 'new') fresh++;
+      else if (c.state === 'learning') learning++;
+      else review++;
+    }
+    /* 按自然日边界算：今天到目标日期之间的天数（目标当天不算学习日） */
+    function dayStart(ts) {
+      var d = new Date(ts);
+      d.setHours(0, 0, 0, 0);
+      return d.getTime();
+    }
+    var calendarDays = Math.max(1, Math.round((dayStart(target) - dayStart(now)) / DAY));
+    var studyDays = Math.max(1, calendarDays - reserve);
+    var perDay = Math.max(1, Math.ceil(fresh / studyDays));
+    var weeks = [];
+    var nWeeks = Math.ceil(studyDays / 7);
+    for (var wk = 1; wk <= nWeeks; wk++) {
+      var doneDays = Math.min(studyDays, wk * 7);
+      var cum = Math.min(fresh, perDay * doneDays);
+      weeks.push({
+        week: wk,
+        to: dateStr(now + doneDays * DAY),
+        cumNew: cum,
+        left: fresh - cum,
+        doneDays: doneDays
+      });
+    }
+    return {
+      total: total,
+      fresh: fresh,
+      learning: learning,
+      review: review,
+      calendarDays: calendarDays,
+      studyDays: studyDays,
+      reserveDays: reserve,
+      perDay: perDay,
+      weeks: weeks,
+      targetDate: dateStr(target),
+      startDate: dateStr(now),
+      estDaily: Math.round(perDay * 4),
+      tight: perDay > 30,
+      impossible: fresh > 0 && studyDays < 1
+    };
+  }
+
   root.SRS = {
     MIN: MIN, DAY: DAY, LADDER: LADDER, MAX_IVL: MAX_IVL, MASTER_IVL: MASTER_IVL,
     DEFAULT_SETTINGS: DEFAULT_SETTINGS,
     GRADE_LABEL: GRADE_LABEL,
     clamp: clamp, todayKey: todayKey, newCard: newCard, isMastered: isMastered,
+    dateStr: dateStr,
     schedule: schedule, previewIntervals: previewIntervals, humanizeDelta: humanizeDelta,
-    buildQueue: buildQueue, summarize: summarize, streak: streak, forecast: forecast
+    buildQueue: buildQueue, summarize: summarize, streak: streak, forecast: forecast,
+    makePlan: makePlan
   };
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -82,5 +82,41 @@ console.log('— 时间显示 —');
 ok('1 分钟', /分钟/.test(S.previewIntervals(S.newCard(T0), T0)[0]));
 ok('1 天', /天/.test(S.previewIntervals(S.newCard(T0), T0)[2]));
 
+console.log('— 学习计划反推 —');
+const planWords = [];
+for (let i = 0; i < 50; i++) planWords.push({ w: 'p' + i, y: [2012] });
+const empty = { settings: {}, cards: {}, log: {} };
+let pr = S.makePlan(planWords, empty, { targetDate: '2026-11-13', reserveDays: 7, now: T0 });
+ok('日历天数 30 天', pr.calendarDays === 30, pr.calendarDays);
+ok('扣掉考前 7 天后可学 23 天', pr.studyDays === 23, pr.studyDays);
+ok('每天 3 个新词（50/23 向上取整）', pr.perDay === 3, pr.perDay);
+ok('周节点 4 个', pr.weeks.length === 4, pr.weeks.length);
+ok('第一周累计 21 个', pr.weeks[0].cumNew === 21, pr.weeks[0].cumNew);
+ok('末周收敛到全部 50 个', pr.weeks[pr.weeks.length - 1].cumNew === 50, pr.weeks[pr.weeks.length - 1].cumNew);
+ok('末周剩余 0', pr.weeks[pr.weeks.length - 1].left === 0);
+ok('起止日期正确', pr.startDate === '2026-10-14' && pr.targetDate === '2026-11-13', pr.startDate + '~' + pr.targetDate);
+
+const half = { settings: {}, cards: {}, log: {} };
+for (let i = 0; i < 20; i++) half.cards['p' + i] = { state: 'review', step: 0, ease: 2.5, ivl: 5, due: T0 + DAY, reps: 2, lapses: 0, last: 0, suspended: false };
+let r2 = S.makePlan(planWords, half, { targetDate: '2026-11-13', reserveDays: 7, now: T0 });
+ok('已学过的词不计入新词', r2.fresh === 30, r2.fresh);
+ok('新词少了，每天也变少', r2.perDay === 2, r2.perDay);
+
+const many = [];
+for (let i = 0; i < 400; i++) many.push({ w: 'q' + i, y: [2013] });
+const r3 = S.makePlan(many, empty, { targetDate: '2026-10-24', reserveDays: 0, now: T0 });
+ok('时间紧时每天新词数很大', r3.perDay === 40, r3.perDay);
+ok('过紧时给出警告标记', r3.tight === true);
+
+let r4 = S.makePlan(planWords, empty, { targetDate: '2026-10-15', reserveDays: 7, now: T0 });
+ok('预留天数超过总天数时至少留 1 天', r4.studyDays === 1, r4.studyDays);
+ok('这种情况下每天要学完所有新词', r4.perDay === 50, r4.perDay);
+
+let r5 = S.makePlan(many, empty, { targetDate: '2026-11-13', reserveDays: 0, years: [2013], now: T0 });
+ok('可以按年份限定范围', r5.total === 400, r5.total);
+let r6 = S.makePlan(planWords.concat(many), empty, { targetDate: '2026-11-13', reserveDays: 0, years: [2012], now: T0 });
+ok('限定 2012 年时不含 2013 的词', r6.total === 50, r6.total);
+ok('默认目标日期为 60 天后', S.makePlan(planWords, empty, { now: T0 }).calendarDays === 60);
+
 console.log('\n通过 ' + pass + ' 项，失败 ' + fail + ' 项');
 process.exit(fail ? 1 : 0);

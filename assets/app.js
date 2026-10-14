@@ -60,17 +60,147 @@
     WORDS = [];
     (DATA.words || []).forEach(function (w) {
       var o = Object.assign({}, w);
-      o.id = o.w.toLowerCase();
+      o.w = String(o.w).toLowerCase();
+      o.id = o.w;
       o.kind = o.kind || 'word';
       WORDS.push(o);
     });
-    store.custom.forEach(function (w) {
-      var id = String(w.w).toLowerCase();
-      if (BYID[id]) return;
-      WORDS.push({ id: id, w: w.w, kind: 'word', own: w.own || '', defs: w.defs || [], y: [], custom: true });
-    });
     BYID = {};
     WORDS.forEach(function (w) { BYID[w.id] = w; });
+    store.custom.forEach(function (w) {
+      var id = String(w.w).toLowerCase().trim();
+      if (BYID[id]) return;
+      var o = Object.assign({}, w);
+      o.id = id;
+      o.w = id;
+      o.kind = o.kind || 'word';
+      o.y = o.y || [];
+      o.custom = true;
+      WORDS.push(o);
+      BYID[id] = o;
+    });
+    YEARS = (function () {
+      var s = {};
+      (DATA.words || []).forEach(function (w) {
+        (w.y || []).forEach(function (y) { if (y) s[y] = 1; });
+      });
+      return Object.keys(s).map(Number).sort();
+    })();
+  }
+  var YEARS = [];
+  /* ---------- 内置词典（ECDICT 裁剪版，按需加载分片） ---------- */
+  var SHARDS = 16, shardLoaded = {};
+  function shardOf(w) {
+    var h = 0;
+    for (var i = 0; i < w.length; i++) h += w.charCodeAt(i);
+    return h % SHARDS;
+  }
+  function loadScript(src, cb) {
+    var s = document.createElement('script');
+    s.src = src;
+    s.onload = function () { cb(null); };
+    s.onerror = function () { cb(new Error('加载失败：' + src)); };
+    document.head.appendChild(s);
+  }
+  function loadShard(n, cb) {
+    if (shardLoaded[n]) { cb(null); return; }
+    loadScript('dict/d' + (n < 10 ? '0' + n : n) + '.js', function (err) {
+      if (!err) shardLoaded[n] = 1;
+      cb(err);
+    });
+  }
+  function rawEntry(w) {
+    var bag = window.ECDICT && window.ECDICT[shardOf(w)];
+    return bag ? bag[w] : null;
+  }
+  /* 猜原形：-ies / -es / -s / -ing / -ed，含去 e 和双写辅音的情况 */
+  function guesses(w) {
+    var out = [];
+    if (/ies$/.test(w) && w.length > 4) out.push(w.slice(0, -3) + 'y');
+    if (/es$/.test(w) && w.length > 3) out.push(w.slice(0, -2));
+    if (/s$/.test(w) && !/ss$/.test(w) && w.length > 3) out.push(w.slice(0, -1));
+    if (/ing$/.test(w) && w.length > 5) {
+      out.push(w.slice(0, -3));
+      out.push(w.slice(0, -3) + 'e');
+      if (w.slice(-4, -3) === w.slice(-5, -4)) out.push(w.slice(0, -4));
+    }
+    if (/ed$/.test(w) && w.length > 4) {
+      out.push(w.slice(0, -2));
+      out.push(w.slice(0, -1));
+      if (w.slice(-3, -2) === w.slice(-4, -3)) out.push(w.slice(0, -3));
+    }
+    var seen = {}, uniq = [];
+    out.forEach(function (c) {
+      if (c && c !== w && c.length > 1 && !seen[c]) { seen[c] = 1; uniq.push(c); }
+    });
+    return uniq.slice(0, 4);
+  }
+  /* 查词：返回 {key, entry, from}，查不到返回 null */
+  function lookupWord(word, cb) {
+    var w = String(word).toLowerCase().trim().replace(/\s+/g, ' ');
+    if (!w) { cb(null); return; }
+    var cands = [w].concat(guesses(w));
+    var i = 0;
+    (function step() {
+      if (i >= cands.length) { cb(null); return; }
+      var cand = cands[i++];
+      loadShard(shardOf(cand), function (err) {
+        if (err) { cb(null); return; }
+        var e = rawEntry(cand);
+        if (e && e.r) {
+          var base = e.r;
+          loadShard(shardOf(base), function (err2) {
+            var be = err2 ? null : rawEntry(base);
+            if (be) cb({ key: base, entry: be, from: cand });
+            else step();
+          });
+          return;
+        }
+        if (e) cb({ key: cand, entry: e, from: cand });
+        else step();
+      });
+    })();
+  }
+  /* ---------- 词根 / 近义辨析（aux.js，首次用时加载） ---------- */
+  var AUX = null, auxLoading = false, auxWaiters = [];
+  function loadAux(cb) {
+    if (AUX) { cb(AUX); return; }
+    auxWaiters.push(cb);
+    if (auxLoading) return;
+    auxLoading = true;
+    loadScript('dict/ecdict-aux.js', function () {
+      AUX = window.ECDICT_AUX || null;
+      auxLoading = false;
+      var ws = auxWaiters;
+      auxWaiters = [];
+      ws.forEach(function (f) { f(AUX); });
+    });
+  }
+  function findRoot(w) {
+    if (!AUX || !AUX.roots) return null;
+    var roots = AUX.roots, k, info, e, i;
+    for (k in roots) {
+      e = roots[k].e;
+      if (e) {
+        for (i = 0; i < e.length; i++) {
+          if (e[i].toLowerCase() === w) return { key: k, info: roots[k] };
+        }
+      }
+    }
+    var best = null;
+    for (k in roots) {
+      info = roots[k];
+      var hit = false;
+      if (k.charAt(0) === '-') hit = w.length > k.length - 1 && w.slice(-(k.length - 1)) === k.slice(1);
+      else if (k.charAt(k.length - 1) === '-') hit = w.indexOf(k.slice(0, -1)) === 0;
+      else hit = k.length >= 3 && w.indexOf(k) >= 0;
+      if (hit && (!best || k.length > best.key.length)) best = { key: k, info: info };
+    }
+    return best;
+  }
+  function findGroup(w) {
+    if (!AUX || !AUX.groups) return null;
+    return AUX.groups[w] || null;
   }
   function deckWords(k) {
     if (k === 'att') return WORDS.filter(function (w) { return w.att; });
@@ -167,6 +297,16 @@
     return esc(en).replace(re, '<b>$1</b>');
   }
   /* ---------- 卡片渲染 ---------- */
+  var EXNAME = { '0': '原形', p: '过去式', d: '过去分词', i: '现在分词', '3': '第三人称单数', s: '复数', r: '比较级', t: '最高级' };
+  function exchangeHtml(w) {
+    if (!w.exchange) return '';
+    var parts = [];
+    String(w.exchange).split('/').forEach(function (x) {
+      var kv = x.split(':');
+      if (kv.length === 2 && EXNAME[kv[0]] && kv[1] && kv[0] !== '0') parts.push(EXNAME[kv[0]] + ' ' + kv[1]);
+    });
+    return parts.length ? '<div class="meta"><b>词形变化</b> ' + esc(parts.join('；')) + '</div>' : '';
+  }
   function tagsHtml(w) {
     var h = [];
     (w.y || []).forEach(function (y) { if (y) h.push('<span class="tag">' + y + '</span>'); });
@@ -174,6 +314,13 @@
     if (w.att) h.push('<span class="tag att-' + w.att + '">态度：' + ({ pos: '正', neg: '负', neu: '中性' }[w.att] || '') + '</span>');
     if (w.kind === 'phrase') h.push('<span class="tag">固定搭配</span>');
     if (w.collins) h.push('<span class="tag">柯林斯 ' + w.collins + '★</span>');
+    if (w.g) {
+      String(w.g).split(' ').forEach(function (t) {
+        if (TAGNAME[t]) h.push('<span class="tag">' + TAGNAME[t] + '</span>');
+      });
+    }
+    if (w.frq) h.push('<span class="tag">词频 ' + w.frq + '</span>');
+    if (w.custom) h.push('<span class="tag">自建</span>');
     if ((w.forms || []).length) h.push('<span class="tag">文中作 ' + esc(w.forms.join(' / ')) + '</span>');
     if (w.freq) h.push('<span class="tag">' + esc(w.freq) + '</span>');
     return '<div class="tags">' + h.join('') + '</div>';
@@ -213,6 +360,11 @@
     if (w.own) h.push('<div class="own"><span class="lbl">你的笔记</span>' + esc(w.own) + '</div>');
     if ((w.defs || []).length) h.push('<ul class="defs">' + w.defs.map(function (d) { return '<li>' + esc(d) + '</li>'; }).join('') + '</ul>');
     if (w.root) h.push('<div class="meta" style="margin-top:10px"><b>词根词缀</b> ' + esc(w.root) + '</div>');
+    h.push(exchangeHtml(w));
+    if ((w.near || []).length) {
+      h.push('<div class="meta"><b>近义辨析</b> ' + w.near.map(esc).join(' / ') +
+        (w.nearNote ? '：' + esc(w.nearNote) : '') + '</div>');
+    }
     if ((w.rel || []).length) {
       h.push('<div class="meta"><b>同根词</b> ' + w.rel.map(function (r) {
         return esc(r[1]) + ' <span style="opacity:.75">' + esc((r[0] || '') + ' ' + (r[2] || '')).slice(0, 40) + '</span>';
@@ -251,8 +403,10 @@
     }).join('') + '</select>');
     h.push('<span class="chip">' + (store.settings.newPerDay) + ' 新词/天</span>');
     h.push('<span style="flex:1"></span>');
+    h.push('<button class="btn sm" data-act="addword">＋ 加词</button>');
     h.push('<button class="btn sm" data-act="restart">重新开始本轮</button>');
     h.push('</div>');
+    h.push(todayBarHtml());
     if (!cur) {
       h.push('<div class="panel pad stack" style="min-height:300px">');
       if (session && session.total === 0) {
@@ -294,6 +448,23 @@
       }
       h.push('</div>');
     }
+    h.push('</div>');
+    return h.join('');
+  }
+  function todayBarHtml() {
+    var now = Date.now();
+    var d = store.log[S.todayKey(now)] || {};
+    var doneNew = d.new || 0, doneRev = d.rev || 0;
+    var due = S.summarize(WORDS, store, now).due;
+    var planNew = store.settings.newPerDay || 0;
+    var totalRev = doneRev + due;
+    var pct = Math.min(100, Math.round((doneNew + doneRev) / Math.max(1, planNew + totalRev) * 100));
+    var h = [];
+    h.push('<div class="todaybar">');
+    h.push('<span>今日计划：新词 <b' + (planNew && doneNew >= planNew ? ' class="ok"' : '') + '>' + doneNew + '/' + planNew +
+      '</b> · 复习 <b' + doneRev + '/' + totalRev + '</b></span>');
+    h.push('<span class="bar"><i style="width:' + pct + '%"></i></span>');
+    h.push('<span class="meta">' + pct + '%</span>');
     h.push('</div>');
     return h.join('');
   }
@@ -425,12 +596,15 @@
     rows.forEach(function (w) {
       var c = store.cards[w.id];
       var st = cardStateText(c);
-      h.push('<tr><td class="w">' + esc(w.w) + '<div class="meta" style="font-size:11.5px">' + ((w.y || []).join('/') || '补充') + (w.kind === 'phrase' ? ' · 搭配' : '') + '</div></td>');
-      h.push('<td>' + esc(w.own || '—') + (w.defs && w.defs.length ? '<div class="meta" style="font-size:12px">' + esc(w.defs[0]).slice(0, 60) + '</div>' : '') + '</td>');
+      h.push('<tr><td class="w">' + esc(w.w) + '<div class="meta" style="font-size:11.5px">' + ((w.y || []).join('/') || '补充') + (w.kind === 'phrase' ? ' · 搭配' : '') + (w.custom ? ' · 自建' : '') + '</div></td>');
+      h.push('<td>' + esc(w.own || '—') + (w.defs && w.defs.length ? '<div class="meta" style="font-size:12px">' + esc(w.defs[0]).slice(0, 60) + '</div>' : '') +
+        (w.root ? '<div class="meta" style="font-size:12px">' + esc(w.root) + '</div>' : '') + '</td>');
       h.push('<td><span class="' + st[1] + '">' + st[0] + '</span></td>');
       h.push('<td>' + (c && c.state !== 'new' && !c.suspended ? md(c.due) : '—') + '</td>');
       h.push('<td style="white-space:nowrap"><button class="btn sm" data-act="toggle-master" data-val="' + esc(w.id) + '">' + (c && S.isMastered(c) ? '取消掌握' : '标记掌握') + '</button> ');
-      h.push('<button class="btn sm danger" data-act="reset" data-val="' + esc(w.id) + '">重置</button></td></tr>');
+      h.push('<button class="btn sm danger" data-act="reset" data-val="' + esc(w.id) + '">重置</button>');
+      if (w.custom) h.push(' <button class="btn sm danger" data-act="delword" data-val="' + esc(w.id) + '">删除</button>');
+      h.push('</td></tr>');
     });
     return h.join('');
   }
@@ -445,6 +619,173 @@
     h.push('<div class="panel" style="overflow:hidden"><table><thead><tr><th>单词</th><th>释义</th><th>状态</th><th>下次复习</th><th>操作</th></tr></thead>');
     h.push('<tbody id="listRows">' + listRows() + '</tbody></table></div>');
     h.push('<div class="meta" id="listCount" style="margin-top:10px"></div>');
+    return h.join('');
+  }
+  /* ---------- 加词面板 ---------- */
+  var TAGNAME = { zk: '中考', gk: '高考', cet4: '四级', cet6: '六级', ky: '考研', ielts: '雅思', toefl: '托福', gre: 'GRE' };
+  var addUI = { open: false, year: 0, text: '', rows: [], busy: false, note: '', dictErr: false };
+  function openAdd(year) {
+    addUI.open = true;
+    addUI.year = year == null ? (YEARS.length ? YEARS[YEARS.length - 1] : 0) : year;
+    addUI.rows = [];
+    addUI.note = '';
+    addUI.dictErr = false;
+    render();
+  }
+  function closeAdd() {
+    addUI.open = false; addUI.rows = []; addUI.note = '';
+    render();
+  }
+  /* 解析输入：换行/分号分隔；整行无中文时按逗号再拆 */
+  function parseWords(text) {
+    var out = [];
+    String(text).split(/\r?\n|[；;]+/).forEach(function (line) {
+      line = String(line).replace(/^\s*(?:\d+[.、)）]|[-*•])\s*/, '').trim();
+      if (!line) return;
+      var pieces = [line];
+      if (line.indexOf(',') >= 0 && !/[\u4e00-\u9fff]/.test(line)) pieces = line.split(',');
+      pieces.forEach(function (p) {
+        p = p.trim().replace(/\s+/g, ' ');
+        if (!p) return;
+        var m = p.match(/^([A-Za-z][A-Za-z'\- ]*?)\s*([\u4e00-\u9fff].*)$/);
+        if (m) out.push({ w: m[1].trim().toLowerCase(), own: m[2].trim() });
+        else if (/^[A-Za-z][A-Za-z'\- ]*$/.test(p)) out.push({ w: p.toLowerCase(), own: '' });
+      });
+    });
+    var seen = {}, uniq = [];
+    out.forEach(function (o) { if (!seen[o.w]) { seen[o.w] = 1; uniq.push(o); } });
+    return uniq.slice(0, 80);
+  }
+  function enrichRows() {
+    addUI.rows.forEach(function (r) {
+      if (!r || r.status === 'dup') return;
+      var rt = findRoot(r.w);
+      if (rt && rt.info) r.root = rt.key + '：' + (rt.info.m || '');
+      var gp = findGroup(r.w);
+      if (gp && gp.length) {
+        r.near = gp[0].w;
+        r.nearNote = gp[0].n || gp[0].h || '';
+      }
+    });
+  }
+  function runLookup() {
+    var list = parseWords(addUI.text);
+    if (!list.length) {
+      addUI.note = '没解析出单词。一行一个，或一行多个用逗号隔开。';
+      render(); return;
+    }
+    addUI.busy = true; addUI.note = ''; addUI.rows = []; addUI.dictErr = false;
+    render();
+    var i = 0;
+    (function next() {
+      if (i >= list.length) {
+        addUI.busy = false;
+        loadAux(function () {
+          enrichRows();
+          addUI.note = '查完 ' + addUI.rows.length + ' 个词。';
+          render();
+        });
+        return;
+      }
+      var item = list[i++];
+      if (BYID[item.w]) {
+        addUI.rows.push({ w: item.w, own: item.own, status: 'dup' });
+        next(); return;
+      }
+      lookupWord(item.w, function (hit) {
+        var row;
+        if (hit) {
+          var e = hit.entry;
+          var defs = e.t ? e.t.split(' / ') : [];
+          row = {
+            w: hit.key, shape: item.w, own: item.own || (defs[0] || ''),
+            defs: defs, ph: e.p || '', tags: e.g || '', collins: e.c || 0,
+            frq: e.f || 0, exchange: e.x || '', status: 'ok'
+          };
+        } else {
+          addUI.dictErr = true;
+          row = { w: item.w, shape: item.w, own: item.own || '', status: 'miss' };
+        }
+        /* 词典可能把它归到原形，而原形早就在词表里了 */
+        if (BYID[row.w]) row.status = 'dup';
+        addUI.rows.push(row);
+        next();
+      });
+    })();
+  }
+  function saveAdd() {
+    var ok = addUI.rows.filter(saveable);
+    if (!ok.length) {
+      addUI.note = '没有可保存的词。词库里没有的，需要自己填一下释义。';
+      render(); return;
+    }
+    var year = parseInt(addUI.year, 10) || 0;
+    var added = 0;
+    ok.forEach(function (r) {
+      var id = String(r.w).toLowerCase().trim();
+      if (!id || BYID[id]) return;
+      store.custom.push({
+        w: id, own: (r.own || '').trim(), defs: r.defs || [], ph: r.ph || '',
+        g: r.tags || '', c: r.collins || 0, frq: r.frq || 0, exchange: r.exchange || '',
+        root: r.root || '', near: r.near || [], nearNote: r.nearNote || '',
+        y: year ? [year] : [], kind: 'word', src: 'ecdict'
+      });
+      added++;
+    });
+    save(); prepare();
+    addUI.open = false; addUI.rows = []; addUI.text = ''; addUI.note = '';
+    ui.view = 'list';
+    ui.listFilter = 'all';   /* 新词要能立刻看见，别被筛选条件挡住 */
+    document.querySelectorAll('#tabs button').forEach(function (x) {
+      x.classList.toggle('on', x.dataset.view === 'list');
+    });
+    render();
+  }
+  function saveable(r) {
+    return !!r && r.status !== 'dup' && (r.status === 'ok' || !!(r.own || '').trim());
+  }
+  function yearOptions(sel) {
+    var opts = YEARS.map(function (y) {
+      return '<option value="' + y + '"' + (sel === y ? ' selected' : '') + '>' + y + ' 年</option>';
+    });
+    opts.push('<option value="0"' + (sel === 0 ? ' selected' : '') + '>补充（不归属年份）</option>');
+    return opts.join('');
+  }
+  function modalHtml() {
+    if (!addUI.open) return '';
+    var h = [];
+    h.push('<div class="overlay" data-act="closeadd"></div>');
+    h.push('<div class="modal panel">');
+    h.push('<div class="modal-head"><b>加生词</b><span class="meta">自动查词典，释义可以改</span>');
+    h.push('<span style="flex:1"></span><button class="btn sm" data-act="closeadd">关闭</button></div>');
+    h.push('<div class="modal-body">');
+    h.push('<div class="tools" style="margin:0 0 10px"><label>加入年份 <select data-act="ayear">' + yearOptions(addUI.year) + '</select></label></div>');
+    h.push('<textarea id="addText" rows="4" placeholder="一行一个单词；也可整列粘贴。&#10;例：&#10;pretext&#10;lucrative 有利可图的">' + esc(addUI.text) + '</textarea>');
+    h.push('<div class="tools" style="margin:10px 0 0"><button class="btn primary" data-act="alookup"' + (addUI.busy ? ' disabled' : '') + '>' + (addUI.busy ? '查询中…' : '查词典') + '</button>');
+    h.push('<span class="meta">' + esc(addUI.note) + '</span></div>');
+    if (addUI.rows.length) {
+      h.push('<div class="scrollbox"><table class="addtable"><thead><tr><th>单词</th><th>音标</th><th>释义（可直接改）</th><th>标记</th><th>状态</th></tr></thead><tbody>');
+      addUI.rows.forEach(function (r, i) {
+        var st = { ok: '<span class="st review">已找到</span>', miss: '<span class="st">词库里没有</span>', dup: '<span class="st">词表已有</span>', manual: '<span class="st master">手动填</span>' }[r.status] || '';
+        var tags = [];
+        if (r.tags) r.tags.split(' ').forEach(function (t) { tags.push(TAGNAME[t] || t); });
+        if (r.collins) tags.push('柯林斯' + r.collins + '★');
+        if (r.frq) tags.push('词频' + r.frq);
+        h.push('<tr><td class="w">' + esc(r.w) + (r.shape && r.shape !== r.w ? '<div class="meta">输入 ' + esc(r.shape) + '</div>' : '') + '</td>');
+        h.push('<td>' + (r.ph ? '/' + esc(r.ph) + '/' : '—') + '</td>');
+        h.push('<td><input class="edit" data-act="adown" data-val="' + i + '" value="' + esc(r.own || '') + '"' + (r.status === 'dup' ? ' disabled' : '') + '></td>');
+        h.push('<td class="meta">' + tags.join(' ') + (r.root ? '<div>词根 ' + esc(r.root) + '</div>' : '') +
+          (r.near ? '<div>近义 ' + esc((r.near || []).join(' / ')) + '</div>' : '') + '</td>');
+        h.push('<td>' + st + '</td></tr>');
+      });
+      h.push('</tbody></table></div>');
+      var n = addUI.rows.filter(saveable).length;
+      h.push('<div class="tools" style="margin-top:12px"><button class="btn primary" data-act="asave">保存到 ' +
+        (parseInt(addUI.year, 10) ? addUI.year + ' 年' : '补充') + '</button>');
+      h.push('<span class="meta">' + n + ' 个词可保存' +
+        (addUI.dictErr ? '；标「词库里没有」的，填上释义也能存' : '') + '</span></div>');
+    }
+    h.push('</div></div>');
     return h.join('');
   }
   /* ---------- 统计 ---------- */
@@ -467,6 +808,7 @@
     h.push('</div>');
     var examTs = store.settings.examDate ? new Date(store.settings.examDate + 'T09:00:00').getTime() : (now + 60 * 86400000);
     var daysLeft = Math.max(0, Math.ceil((examTs - now) / 86400000));
+    h.push(planHtml(now));
     h.push('<h3 class="sec">倒计时与阶段安排</h3>');
     h.push('<div class="panel pad">');
     h.push('<div style="font-size:17px">距考试还有 <b style="font-size:26px;color:var(--accent)">' + daysLeft + '</b> 天 <span class="meta">（' + ymd(examTs) + '，可在下面设置里改）</span></div>');
@@ -529,6 +871,43 @@
     return h.join('');
   }
   /* ---------- 顶栏 ---------- */
+  /* ---------- 自定义学习计划 ---------- */
+  var planUI = { target: '', reserve: 7, res: null };
+  function planHtml(now) {
+    if (!planUI.target) planUI.target = store.settings.examDate || S.dateStr(now + 60 * 86400000);
+    var r = planUI.res;
+    var h = [];
+    h.push('<h3 class="sec">自定义学习计划</h3><div class="panel pad">');
+    h.push('<div class="tools" style="margin:0">');
+    h.push('<label>目标日期 <input type="date" data-act="plan" data-val="target" value="' + esc(planUI.target) + '"></label>');
+    h.push('<label>考前留出 <input type="number" min="0" max="90" style="width:72px" data-act="plan" data-val="reserve" value="' + planUI.reserve + '"> 天只复习</label>');
+    h.push('<button class="btn primary" data-act="planmake">生成计划</button>');
+    h.push('</div>');
+    if (!r) {
+      h.push('<div class="meta" style="margin-top:10px">设一个目标日期，点「生成计划」：按剩余新词反推每天要学几个，并给出每周的进度节点。生成的数字可以一键应用。</div>');
+      h.push('</div>');
+      return h.join('');
+    }
+    h.push('<hr class="hr">');
+    h.push('<div class="grid">');
+    h.push('<div class="stat"><div class="k">剩余新词</div><div class="v">' + r.fresh + ' <small>个</small></div><div class="k">范围内共 ' + r.total + ' 个</div></div>');
+    h.push('<div class="stat"><div class="k">可用学习天数</div><div class="v">' + r.studyDays + ' <small>天</small></div><div class="k">' + r.startDate + ' → ' + r.targetDate + '，已留 ' + r.reserveDays + ' 天复习</div></div>');
+    h.push('<div class="stat"><div class="k">每天新词</div><div class="v">' + r.perDay + ' <small>个</small></div><div class="k">加上复习约 ' + Math.max(8, Math.round(r.perDay * 1.7 + 4)) + ' 分钟</div></div>');
+    h.push('<div class="stat"><div class="k">预计每天复习</div><div class="v">约 ' + r.estDaily + ' <small>张</small></div><div class="k">新词累积后稳定下来的量</div></div>');
+    h.push('</div>');
+    if (r.tight) {
+      h.push('<div class="warnbox" style="margin-top:12px">每天 ' + r.perDay + ' 个新词偏多，容易坚持不下去。可以把目标日期往后挪，或者把「考前留出」的天数调小。</div>');
+    }
+    h.push('<div style="margin-top:12px"><button class="btn primary" data-act="planapply">按这个计划设置</button> <span class="meta">同时改掉每天新词数与考试日期</span></div>');
+    h.push('<h3 class="sec" style="margin-top:18px">每周节点</h3>');
+    h.push('<table><thead><tr><th>周次</th><th>到这天为止</th><th>累计学完</th><th>还剩</th></tr></thead><tbody>');
+    r.weeks.forEach(function (w) {
+      h.push('<tr><td class="w">第 ' + w.week + ' 周</td><td>' + w.to + '</td><td>' + w.cumNew + ' 个</td><td>' + w.left + ' 个</td></tr>');
+    });
+    h.push('</tbody></table>');
+    h.push('</div>');
+    return h.join('');
+  }
   function chipsHtml() {
     var now = Date.now();
     var sum = S.summarize(WORDS, store, now);
@@ -554,6 +933,7 @@
     else if (ui.view === 'drill') v.innerHTML = drillHtml();
     else if (ui.view === 'list') { v.innerHTML = listHtml(); }
     else v.innerHTML = statsHtml();
+    $('#modal').innerHTML = modalHtml();
     var sb = $('#spellBox');
     if (sb && store.settings.mode === 'spell' && !ui.revealed) {
       sb.focus();
@@ -604,14 +984,30 @@
       store.cards[id] = c; save(); render();
     } else if (act === 'reset') {
       delete store.cards[val]; save(); render();
-    } else if (act === 'addword') {
-      var w = prompt('输入单词或词组：'); if (!w) return;
-      var m = prompt('输入中文释义：') || '';
-      var key = w.trim().toLowerCase();
-      if (!key) return;
-      if (BYID[key]) { alert('这个词已经在词表里了。'); return; }
-      store.custom.push({ w: w.trim(), own: m.trim() });
+    } else if (act === 'addword') { openAdd(); }
+    else if (act === 'closeadd') { closeAdd(); }
+    else if (act === 'alookup') { runLookup(); }
+    else if (act === 'asave') { saveAdd(); }
+    else if (act === 'delword') {
+      var dw = val, di = -1;
+      store.custom.forEach(function (x, i) { if (String(x.w).toLowerCase() === dw) di = i; });
+      if (di < 0) return;
+      if (!confirm('删除自建词「' + dw + '」？')) return;
+      store.custom.splice(di, 1);
+      delete store.cards[dw];
       save(); prepare(); render();
+    } else if (act === 'planmake') {
+      planUI.res = S.makePlan(WORDS, store, {
+        targetDate: planUI.target, reserveDays: planUI.reserve, now: Date.now()
+      });
+      render();
+    } else if (act === 'planapply') {
+      var r = planUI.res;
+      if (!r) return;
+      if (r.tight && !confirm('每天 ' + r.perDay + ' 个新词偏多，确定要这样设置吗？')) return;
+      store.settings.newPerDay = r.perDay;
+      store.settings.examDate = r.targetDate;
+      save(); startSession(ui.deck); render();
     } else if (act === 'export') {
       var blob = new Blob([JSON.stringify(store)], { type: 'application/json' });
       var a = document.createElement('a');
@@ -631,6 +1027,13 @@
     var act = t.dataset.act, val = t.dataset.val;
     if (act === 'deck') { ui.deck = t.value; startSession(ui.deck); render(); }
     else if (act === 'lfilter') { ui.listFilter = t.value; $('#listRows').innerHTML = listRows(); render(); }
+    else if (act === 'ayear') { addUI.year = parseInt(t.value, 10) || 0; render(); }
+    else if (act === 'plan') {
+      if (val === 'target') planUI.target = t.value;
+      else planUI.reserve = Math.max(0, parseInt(t.value, 10) || 0);
+      planUI.res = null;
+      render();
+    }
     else if (act === 'set') {
       if (t.type === 'checkbox') store.settings[val] = t.checked;
       else if (t.type === 'number') store.settings[val] = Math.max(0, parseInt(t.value, 10) || 0);
@@ -660,6 +1063,11 @@
       if (el) el.textContent = '显示 ' + document.querySelectorAll('#listRows tr').length + ' 条 / 共 ' + WORDS.length + ' 条';
     } else if (e.target.id === 'spellBox') {
       ui.spell = e.target.value; ui.spellOk = null;
+    } else if (e.target.id === 'addText') {
+      addUI.text = e.target.value;
+    } else if (e.target.dataset && e.target.dataset.act === 'adown') {
+      var ai = parseInt(e.target.dataset.val, 10);
+      if (addUI.rows[ai]) addUI.rows[ai].own = e.target.value;
     }
   });
   document.addEventListener('keydown', function (e) {

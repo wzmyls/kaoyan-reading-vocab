@@ -38,8 +38,22 @@ const document = {
   querySelector(s) { if (!nodes.has(s)) nodes.set(s, makeEl(s)); return nodes.get(s); },
   querySelectorAll(s) { return s === '#tabs button' ? tabs : []; },
   addEventListener(ev, fn) { handlers[ev] = fn; },
-  createElement(t) { return makeEl(t); }
+  createElement(t) { return makeEl(t); },
+  head: {
+    /* app.js 用 <script> 按需加载词典分片：这里真读磁盘上的 dict/*.js 并执行 */
+    appendChild(el) {
+      try {
+        const code = fs.readFileSync(path.join(root, el.src), 'utf8');
+        vm.runInContext(code, sandbox);
+        dictFiles.push(el.src);
+        if (el.onload) el.onload();
+      } catch (e) {
+        if (el.onerror) el.onerror(e);
+      }
+    }
+  }
 };
+const dictFiles = [];
 const mem = {};
 const localStorage = {
   getItem: k => (k in mem ? mem[k] : null),
@@ -186,6 +200,55 @@ ok('设置已生效', win.__DBG().store.settings.newPerDay === 5, JSON.stringify
 T('改考试日期', () => change('set', 'examDate', { value: '2026-12-19', type: 'date' }));
 ok('考试日期已生效', win.__DBG().store.settings.examDate === '2026-12-19', JSON.stringify(win.__DBG().store.settings));
 T('导出备份', () => click('export'));
+
+console.log('— 进度持久化 —');
+const beforeAdd = win.__DBG().words;
+console.log('— 加词：查词典（加载真实分片）—');
+const modal = () => nodes.get('#modal').innerHTML;
+T('打开加词面板', () => click('addword'));
+ok('面板里有输入框', modal().indexOf('addText') >= 0);
+ok('可以选年份 2020', modal().indexOf('2020 年') >= 0);
+fire('input', { target: { id: 'addText', value: 'sanctions\nubiquitous 无所不在的\nplausible\ncareless\nzzzqqqnotaword' } });
+T('点查词典', () => click('alookup'));
+ok('真的加载了词典分片（' + dictFiles.length + ' 个）', dictFiles.length > 0, dictFiles.join(','));
+ok('sanctions 被归到原形 sanction', modal().indexOf('输入 sanctions') >= 0);
+ok('复数形式查到了释义', modal().indexOf('制裁') >= 0);
+ok('原形已在词表里的标成「已有」', modal().indexOf('词表已有') >= 0);
+ok('用户自己写的释义被保留', modal().indexOf('无所不在的') >= 0);
+ok('查不到的词标成「词库里没有」', modal().indexOf('词库里没有') >= 0);
+ok('提示可保存数量', /3 个词可保存/.test(modal()), (modal().match(/\d+ 个词可保存/) || [])[0]);
+ok('带词根的词显示了词根', modal().indexOf('-less') >= 0);
+ok('带近义群的词显示了近义', modal().indexOf('近义') >= 0);
+T('保存', () => click('asave'));
+const d4 = win.__DBG();
+ok('自建词写进存储', d4.store.custom.length === 3, JSON.stringify(d4.store.custom.map(x => x.w)));
+ok('词表总数 +3', d4.words === beforeAdd + 3, d4.words + ' vs ' + beforeAdd);
+ok('带上了年份 2020', JSON.stringify(d4.store.custom[0].y) === '[2020]', JSON.stringify(d4.store.custom[0].y));
+ok('保存了音标', !!(d4.store.custom[0].ph || '').length, d4.store.custom[0].ph);
+ok('保存了词典释义', (d4.store.custom[0].defs || []).length > 0, JSON.stringify(d4.store.custom[0].defs));
+ok('词根信息落库', d4.store.custom.some(x => (x.root || '').indexOf('-less') >= 0),
+  JSON.stringify(d4.store.custom.map(x => x.root || '')));
+ok('近义辨析落库', d4.store.custom.some(x => (x.near || []).length > 0),
+  JSON.stringify(d4.store.custom.map(x => x.near || [])));
+ok('保存后跳到词表页', view().indexOf('listRows') >= 0);
+ok('词表里能看到自建词', view().indexOf('自建') >= 0 && view().indexOf('ubiquitous') >= 0);
+
+console.log('— 自定义学习计划 —');
+T('切到统计页', () => tabs[3]._on.click());
+ok('出现计划区', view().indexOf('自定义学习计划') >= 0);
+T('设目标日期', () => change('plan', 'target', { value: '2026-12-13', type: 'date' }));
+T('设考前预留 10 天', () => change('plan', 'reserve', { value: '10', type: 'number' }));
+T('生成计划', () => click('planmake'));
+ok('显示剩余新词', view().indexOf('剩余新词') >= 0);
+ok('显示每周节点', view().indexOf('第 1 周') >= 0);
+const pm = view().match(/每天新词<\/div><div class="v">(\d+)/);
+ok('算出每天新词数 = ' + (pm && pm[1]), !!pm);
+T('应用计划', () => click('planapply'));
+ok('每天新词数被改成计划值', win.__DBG().store.settings.newPerDay === parseInt(pm[1], 10),
+  win.__DBG().store.settings.newPerDay + ' vs ' + pm[1]);
+ok('考试日期同步为 2026-12-13', win.__DBG().store.settings.examDate === '2026-12-13', win.__DBG().store.settings.examDate);
+T('回到背诵页', () => tabs[0]._on.click());
+ok('显示今日计划进度条', view().indexOf('今日计划') >= 0);
 
 console.log('— 进度持久化 —');
 flushTimers();
