@@ -78,6 +78,7 @@ h3.sec { font-size: 14px; color: var(--text-dim); font-weight: 600; margin: 22px
 .tags { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
 .tag { font-size: 11.5px; padding: 2px 8px; border-radius: 6px; background: var(--panel-2); color: var(--text-dim); }
 .tag.att-neg { background: #fdeaea; color: #b0342f; }
+.tag.focus { background: var(--accent); color: #fff; font-weight: 600; }
 .tag.att-pos { background: #e7f6ee; color: #10704b; }
 .tag.att-neu { background: #eef0f3; color: #58606b; }
 @media (prefers-color-scheme: dark) {

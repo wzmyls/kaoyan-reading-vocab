@@ -9,7 +9,8 @@ BASE_FORMS = ("withdraw", "sell", "care", "plead", "feat", "irritate", "benefit"
               "executive", "incentive", "sanction", "impose", "unfold", "condemn")
 
 def load(name):
-    with open(os.path.join(ROOT, name), encoding='utf-8') as f:
+    p = name if os.path.isabs(name) else os.path.join(ROOT, name)
+    with open(p, encoding='utf-8') as f:
         return json.load(f)
 
 def merge_own(a, b):
@@ -50,9 +51,13 @@ def tidy_syno(syno, nw=4):
     return out
 
 def main():
-    lst = load('raw/词表.json')
-    cache = load('raw/dict_cache.json')
-    man = load('tools/manual.json')
+    args = sys.argv[1:]
+    def opt(name, default):
+        return args[args.index(name) + 1] if name in args else default
+    lst = load(opt('--list', 'raw/词表.json'))
+    cache = load(opt('--cache', 'raw/dict_cache.json'))
+    man = load(opt('--manual', 'tools/manual.json'))
+    out_path = opt('--out', os.path.join(ROOT, 'data.js'))
     fixes, attmap = man.get('fixes', {}), man.get('att', {})
     gnotes = man.get('groups', {})
 
@@ -189,14 +194,22 @@ def main():
         if a in byid and bs:
             byid[a]['conf'] = bs[:5]
 
+    # 重点年份：优先取最近几年的真题（离考试越近，参考价值越大）
+    all_years = sorted({y for w in words for y in (w.get('y') or []) if y})
+    FOCUS_DEFAULT = [2021, 2022, 2023, 2024, 2025]
+    focus_years = [y for y in FOCUS_DEFAULT if y in all_years]
+    if not focus_years:
+        focus_years = all_years[-2:] if len(all_years) >= 2 else list(all_years)
+    years_txt = '%d–%d' % (all_years[0], all_years[-1]) if all_years else ''
     deck = {
-        'deckName': '考研英语一 阅读生词 · 2012–2020',
+        'deckName': '考研英语一 阅读生词 · ' + years_txt,
         'builtAt': '2026-10-14',
+        'focusYears': focus_years,
         'words': words,
         'groups': groups
     }
     out = 'window.WORD_DATA = ' + json.dumps(deck, ensure_ascii=False, separators=(',', ':')) + ';\n'
-    with open(os.path.join(ROOT, 'data.js'), 'w', encoding='utf-8') as f:
+    with open(out_path, 'w', encoding='utf-8') as f:
         f.write(out)
 
     # ---- 报告 ----
@@ -204,6 +217,9 @@ def main():
     np_ = len([w for w in words if w['kind'] == 'phrase'])
     na = len([w for w in words if w.get('att')])
     print('生成 data.js：单词 %d + 词组 %d = %d 张卡；易混组 %d；态度词 %d' % (nw, np_, len(words), len(groups), na))
+    print('年份范围: %s  重点年份: %s（%d 张卡）' % (
+        years_txt, ','.join(str(y) for y in focus_years),
+        len([w for w in words if set(w.get('y') or []) & set(focus_years)])))
     print('体积: %.0f KB' % (len(out.encode('utf-8')) / 1024.0))
     nod = [w['w'] for w in words if not w['defs']]
     nex = [w['w'] for w in words if not w['ex']]

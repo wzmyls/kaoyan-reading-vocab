@@ -40,6 +40,8 @@
     store.groups = store.groups || {};
     store.custom = store.custom || [];
     if (!store.settings.examDate) store.settings.examDate = isoDate(Date.now() + 60 * 86400000);
+    if (!store.settings.focusYears) store.settings.focusYears = (DATA.focusYears || []).slice();
+    if (store.settings.focusWeight == null) store.settings.focusWeight = 0.6;
   }
   function save() {
     if (!lsOK) return;
@@ -205,6 +207,7 @@
   function deckWords(k) {
     if (k === 'att') return WORDS.filter(function (w) { return w.att; });
     if (k === 'phrase') return WORDS.filter(function (w) { return w.kind === 'phrase'; });
+    if (k === 'focus') return WORDS.filter(function (w) { return S.isFocus(w, store.settings); });
     if (k === 'weak') {
       return WORDS.filter(function (w) {
         var c = store.cards[w.id];
@@ -215,6 +218,7 @@
   }
   var DECKS = [
     { k: 'all', name: '全部单词' },
+    { k: 'focus', name: '重点年份' },
     { k: 'att', name: '态度词' },
     { k: 'phrase', name: '固定搭配' },
     { k: 'weak', name: '易错重点' }
@@ -261,7 +265,8 @@
     var now = Date.now(), id = cur.id;
     var before = store.cards[id] || S.newCard(now);
     var isNew = before.state === 'new';
-    store.cards[id] = S.schedule(before, g, now);
+    /* 重点年份的词间隔按权重缩短 —— 复习得更勤 */
+    store.cards[id] = S.schedule(before, g, now, S.focusWeight(cur, store.settings));
     bumpLog(now, isNew, g);
     session.done++;
     session.grades[g]++;
@@ -309,6 +314,7 @@
   }
   function tagsHtml(w) {
     var h = [];
+    if (S.isFocus(w, store.settings)) h.push('<span class="tag focus">重点</span>');
     (w.y || []).forEach(function (y) { if (y) h.push('<span class="tag">' + y + '</span>'); });
     if (!(w.y || []).length) h.push('<span class="tag">补充</span>');
     if (w.att) h.push('<span class="tag att-' + w.att + '">态度：' + ({ pos: '正', neg: '负', neu: '中性' }[w.att] || '') + '</span>');
@@ -402,6 +408,10 @@
       return '<option value="' + d.k + '"' + (ui.deck === d.k ? ' selected' : '') + '>' + d.name + '</option>';
     }).join('') + '</select>');
     h.push('<span class="chip">' + (store.settings.newPerDay) + ' 新词/天</span>');
+    if ((store.settings.focusYears || []).length) {
+      h.push('<span class="chip hot">重点 <b>' + store.settings.focusYears.join('/') + '</b> 间隔×' +
+        store.settings.focusWeight + '</span>');
+    }
     h.push('<span style="flex:1"></span>');
     h.push('<button class="btn sm" data-act="addword">＋ 加词</button>');
     h.push('<button class="btn sm" data-act="restart">重新开始本轮</button>');
@@ -439,7 +449,8 @@
     if (!ui.revealed) {
       h.push('<div class="grades"><button class="primary btn" style="grid-column:1/-1;padding:12px" data-act="reveal">显示答案 <kbd>空格</kbd></button></div>');
     } else {
-      var ivl = S.previewIntervals(store.cards[cur.id] || S.newCard(), Date.now());
+      var ivl = S.previewIntervals(store.cards[cur.id] || S.newCard(), Date.now(),
+        S.focusWeight(cur, store.settings));
       var lbl = S.GRADE_LABEL;
       h.push('<div class="grades">');
       for (var i = 0; i < 4; i++) {
@@ -803,6 +814,12 @@
     h.push('<div class="grid" style="margin-top:18px">');
     h.push('<div class="stat"><div class="k">词表总数</div><div class="v">' + sum.total + ' <small>词</small></div><div class="k">未学 ' + sum.fresh + ' · 学习中 ' + sum.learning + '</div></div>');
     h.push('<div class="stat"><div class="k">已掌握</div><div class="v">' + sum.mastered + ' <small>词</small></div><div class="k">间隔 ≥ 21 天</div></div>');
+    if (sum.focus && sum.focus.total) {
+      h.push('<div class="stat"><div class="k">重点年份 ' + (store.settings.focusYears || []).join('/') +
+        '（间隔×' + store.settings.focusWeight + '）</div><div class="v">' + sum.focus.total +
+        ' <small>词</small></div><div class="k">未学 ' + sum.focus.fresh + ' · 已掌握 ' + sum.focus.mastered +
+        ' · 今日到期 ' + sum.focus.due + '</div></div>');
+    }
     h.push('<div class="stat"><div class="k">今日待复习</div><div class="v">' + sum.due + ' <small>张</small></div><div class="k">今日已学新词 ' + ((store.log[S.todayKey()] || {}).new || 0) + ' / ' + perDay + '</div></div>');
     h.push('<div class="stat"><div class="k">连续打卡</div><div class="v">' + streak + ' <small>天</small></div><div class="k">共记录 ' + Object.keys(store.log).length + ' 天</div></div>');
     h.push('</div>');
@@ -851,6 +868,13 @@
     h.push('<div class="tools" style="margin:0">');
     h.push('<label>考试日期 <input type="date" data-act="set" data-val="examDate" value="' + esc(store.settings.examDate || '') + '"></label>');
     h.push('<label>每天新词 <input type="number" min="0" max="100" value="' + perDay + '" data-act="set" data-val="newPerDay" style="width:80px"></label>');
+    h.push('<label>重点年份 <input type="text" data-act="fset" data-val="focusYears" style="width:170px" value="' +
+      esc((store.settings.focusYears || []).join(',')) + '" placeholder="如 2021,2022,2023"></label>');
+    h.push('<label>重点词复习频率 <select data-act="fset" data-val="focusWeight">' +
+      [[0.5, '间隔×0.5（最频繁）'], [0.6, '间隔×0.6（默认）'], [0.8, '间隔×0.8（略多）'], [1, '×1（不加强）']]
+        .map(function (o) {
+          return '<option value="' + o[0] + '"' + (Number(store.settings.focusWeight) === o[0] ? ' selected' : '') + '>' + o[1] + '</option>';
+        }).join('') + '</select></label>');
     h.push('<label>回忆方式 <select data-act="set" data-val="mode">' + [['en2cn', '看英文想中文（推荐）'], ['cn2en', '看中文想英文'], ['spell', '看中文拼写']]
       .map(function (o) { return '<option value="' + o[0] + '"' + (store.settings.mode === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select></label>');
     h.push('<label><input type="checkbox" data-act="set" data-val="showPhonetic"' + (store.settings.showPhonetic ? ' checked' : '') + '> 显示音标</label>');
@@ -1028,6 +1052,17 @@
     if (act === 'deck') { ui.deck = t.value; startSession(ui.deck); render(); }
     else if (act === 'lfilter') { ui.listFilter = t.value; $('#listRows').innerHTML = listRows(); render(); }
     else if (act === 'ayear') { addUI.year = parseInt(t.value, 10) || 0; render(); }
+    else if (act === 'fset') {
+      if (val === 'focusYears') {
+        store.settings.focusYears = String(t.value).split(/[,，;；\s]+/)
+          .map(function (x) { return parseInt(x, 10); })
+          .filter(function (x) { return x > 2000 && x < 2100; });
+      } else {
+        var fw = parseFloat(t.value);
+        store.settings.focusWeight = (fw > 0 && fw <= 1) ? fw : 1;
+      }
+      save(); render();
+    }
     else if (act === 'plan') {
       if (val === 'target') planUI.target = t.value;
       else planUI.reserve = Math.max(0, parseInt(t.value, 10) || 0);
@@ -1104,6 +1139,8 @@
       render();
     });
   });
-  window.__DBG = function () { return { store: store, words: WORDS.length, session: session, cur: cur }; };
+  window.__DBG = function () {
+    return { store: store, words: WORDS.length, list: WORDS, byId: BYID, session: session, cur: cur };
+  };
   render();
 })();

@@ -59,9 +59,9 @@
     return Math.max(2, Math.round(ivl * f));
   }
 
-  /* 核心调度：返回推进后的卡片副本
+  /* 核心调度（原始，不含重点权重）：返回推进后的卡片副本
      grade 0=忘记 1=模糊 2=认识 3=太简单 */
-  function schedule(card, grade, now) {
+  function scheduleRaw(card, grade, now) {
     now = now == null ? Date.now() : now;
     var c = {};
     for (var k in card) if (Object.prototype.hasOwnProperty.call(card, k)) c[k] = card[k];
@@ -120,6 +120,34 @@
     return c;
   }
 
+  /* 重点词的权重：settings.focusYears 里的年份命中就返回 focusWeight（默认 0.6） */
+  function focusWeight(word, settings) {
+    var fy = (settings && settings.focusYears) || [];
+    if (!fy.length) return 1;
+    var k = (settings && settings.focusWeight);
+    if (k == null) k = 0.6;
+    var ys = (word && word.y) || [];
+    for (var i = 0; i < ys.length; i++) {
+      if (fy.indexOf(ys[i]) >= 0) return k;
+    }
+    return 1;
+  }
+
+  function isFocus(word, settings) {
+    return focusWeight(word, settings) < 1;
+  }
+
+  /* 公开的调度：重点词的复习间隔按权重缩短，等于复习得更勤 */
+  function schedule(card, grade, now, weight) {
+    now = now == null ? Date.now() : now;
+    var c = scheduleRaw(card, grade, now);
+    if (weight != null && weight > 0 && weight !== 1 && c.state === 'review') {
+      c.ivl = clamp(Math.max(1, Math.round(c.ivl * weight)), 1, MAX_IVL);
+      c.due = now + fuzz(c.ivl) * DAY;
+    }
+    return c;
+  }
+
   /* 按钮上显示的「选了会怎样」提示 */
   function humanizeDelta(ms) {
     var m = ms / MIN;
@@ -133,11 +161,11 @@
     return (d / 365).toFixed(1) + ' 年';
   }
 
-  function previewIntervals(card, now) {
+  function previewIntervals(card, now, weight) {
     now = now == null ? Date.now() : now;
     var out = [];
     for (var g = 0; g <= 3; g++) {
-      var c = schedule(card, g, now);
+      var c = schedule(card, g, now, weight);
       out.push(humanizeDelta(c.due - now));
     }
     return out;
@@ -149,43 +177,71 @@
     var settings = store.settings || DEFAULT_SETTINGS;
     var cards = store.cards || {};
     var due = [], fresh = [];
+    var focusDue = 0, focusNew = 0;
 
     for (var i = 0; i < words.length; i++) {
-      var id = words[i].w;
+      var w = words[i];
+      var id = w.w;
       var c = cards[id] || newCard(now);
       if (c.suspended) continue;
-      if (c.state === 'new') fresh.push({ id: id, idx: i });
-      else if (c.due <= now) due.push({ id: id, due: c.due });
+      var f = isFocus(w, settings) ? 1 : 0;
+      if (c.state === 'new') {
+        fresh.push({ id: id, idx: i, f: f });
+        if (f) focusNew++;
+      } else if (c.due <= now) {
+        due.push({ id: id, due: c.due, f: f });
+        if (f) focusDue++;
+      }
     }
-    due.sort(function (a, b) { return a.due - b.due; });
+    /* 重点年份的词排在前面：先复习重点，再复习其他 */
+    due.sort(function (a, b) { return (b.f - a.f) || (a.due - b.due); });
 
     var todayLog = (store.log || {})[todayKey(now)] || {};
     var allow = Math.max(0, (settings.newPerDay || 0) - (todayLog.new || 0));
-    var picked = fresh.slice(0, allow).map(function (x) { return x.id; });
-    if (settings.shuffleNew) {
-      for (var j = picked.length - 1; j > 0; j--) {
-        var k = Math.floor(Math.random() * (j + 1));
-        var t = picked[j]; picked[j] = picked[k]; picked[k] = t;
-      }
-    }
+    /* 新词额度也优先给重点年份 */
+    var fNew = [], oNew = [];
+    for (var m = 0; m < fresh.length; m++) (fresh[m].f ? fNew : oNew).push(fresh[m]);
+    if (settings.shuffleNew) { shuffleArr(fNew); shuffleArr(oNew); }
+    var ordered = fNew.concat(oNew);
+    var picked = ordered.slice(0, allow).map(function (x) { return x.id; });
 
     return {
       ids: due.map(function (x) { return x.id; }).concat(picked),
       dueCount: due.length,
       newCount: picked.length,
       newLeftToday: allow,
-      untouched: fresh.length
+      untouched: fresh.length,
+      focusDue: focusDue,
+      focusNew: focusNew,
+      focusNewPicked: picked.length ? Math.min(picked.length, fNew.length) : 0
     };
+  }
+
+  function shuffleArr(a) {
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
   }
 
   /* 统计汇总 */
   function summarize(words, store, now) {
     now = now == null ? Date.now() : now;
     var cards = store.cards || {};
-    var s = { total: words.length, fresh: 0, learning: 0, review: 0, mastered: 0, suspended: 0, due: 0, byYear: {} };
+    var settings = store.settings || DEFAULT_SETTINGS;
+    var s = { total: words.length, fresh: 0, learning: 0, review: 0, mastered: 0, suspended: 0, due: 0,
+              focus: { total: 0, fresh: 0, mastered: 0, due: 0 }, byYear: {} };
     for (var i = 0; i < words.length; i++) {
       var w = words[i];
       var c = cards[w.w] || newCard(now);
+      var isF = isFocus(w, settings);
+      if (isF) {
+        s.focus.total++;
+        if (!c.suspended && c.state === 'new') s.focus.fresh++;
+        if (!c.suspended && c.state === 'review' && c.ivl >= MASTER_IVL) s.focus.mastered++;
+        if (!c.suspended && c.state !== 'new' && c.due <= now) s.focus.due++;
+      }
       if (c.suspended) s.suspended++;
       else if (c.state === 'new') s.fresh++;
       else if (c.state === 'learning') s.learning++;
@@ -308,7 +364,9 @@
     GRADE_LABEL: GRADE_LABEL,
     clamp: clamp, todayKey: todayKey, newCard: newCard, isMastered: isMastered,
     dateStr: dateStr,
-    schedule: schedule, previewIntervals: previewIntervals, humanizeDelta: humanizeDelta,
+    schedule: schedule, scheduleRaw: scheduleRaw,
+    focusWeight: focusWeight, isFocus: isFocus,
+    previewIntervals: previewIntervals, humanizeDelta: humanizeDelta,
     buildQueue: buildQueue, summarize: summarize, streak: streak, forecast: forecast,
     makePlan: makePlan
   };

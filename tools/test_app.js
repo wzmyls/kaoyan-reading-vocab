@@ -251,6 +251,44 @@ T('回到背诵页', () => tabs[0]._on.click());
 ok('显示今日计划进度条', view().indexOf('今日计划') >= 0);
 
 console.log('— 进度持久化 —');
+console.log('— 重点年份加权 —');
+T('切到统计页', () => tabs[3]._on.click());
+ok('默认已带重点年份', (win.__DBG().store.settings.focusYears || []).length > 0,
+  JSON.stringify(win.__DBG().store.settings.focusYears));
+ok('默认权重 0.6', win.__DBG().store.settings.focusWeight === 0.6, String(win.__DBG().store.settings.focusWeight));
+ok('统计页显示重点块', view().indexOf('重点年份') >= 0);
+T('把重点年份改成 2019,2020', () => change('fset', 'focusYears', { value: '2019,2020', type: 'text' }));
+ok('重点年份已保存', JSON.stringify(win.__DBG().store.settings.focusYears) === '[2019,2020]',
+  JSON.stringify(win.__DBG().store.settings.focusYears));
+T('把重点频率改成 0.5', () => change('fset', 'focusWeight', { value: '0.5', type: 'select' }));
+ok('权重已生效', win.__DBG().store.settings.focusWeight === 0.5, String(win.__DBG().store.settings.focusWeight));
+{
+  const S_ = sandbox.window.SRS;
+  const card0 = { state: 'review', step: 0, ease: 2.5, ivl: 20, due: Date.now(), reps: 4, lapses: 0, last: 0, suspended: false };
+  const st = win.__DBG().store.settings;
+  const fi = S_.schedule(card0, 2, Date.now(), S_.focusWeight({ w: 'x', y: [2019] }, st)).ivl;
+  const ni = S_.schedule(card0, 2, Date.now(), S_.focusWeight({ w: 'y', y: [2015] }, st)).ivl;
+  ok('同样的评分，重点词间隔 ' + fi + ' 天 明显短于 普通词 ' + ni + ' 天', fi < ni);
+}
+T('切回背诵并选「重点年份」范围', () => {
+  tabs[0]._on.click();
+  change('deck', 'focus', { value: 'focus', type: 'select' });
+});
+T('补一轮新词', () => click('new10'));
+{
+  const d = win.__DBG();
+  const ids = (d.cur ? [d.cur.id] : []).concat(d.session.queue);
+  ok('队列非空', ids.length > 0, String(ids.length));
+  ok('排的确实都是 2019/2020 的词', ids.every(function (id) {
+    const w = d.byId[id];
+    return w && (w.y || []).some(function (y) { return y === 2019 || y === 2020; });
+  }), ids.slice(0, 6).join(','));
+  ok('复习范围是重点', d.session.deck === 'focus', d.session.deck);
+}
+ok('卡片带「重点」标记', (function () { click('reveal'); return view().indexOf('tag focus') >= 0; })());
+ok('页面显示重点权重', view().indexOf('间隔×0.5') >= 0);
+
+console.log('— 进度持久化 —');
 flushTimers();
 const saved = JSON.parse(mem['kaoyan_words_v1'] || '{}');
 ok('数据写进了 localStorage', !!saved.cards && Object.keys(saved.cards).length > 0,

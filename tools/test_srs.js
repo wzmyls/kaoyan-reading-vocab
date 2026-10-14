@@ -118,5 +118,41 @@ let r6 = S.makePlan(planWords.concat(many), empty, { targetDate: '2026-11-13', r
 ok('限定 2012 年时不含 2013 的词', r6.total === 50, r6.total);
 ok('默认目标日期为 60 天后', S.makePlan(planWords, empty, { now: T0 }).calendarDays === 60);
 
+console.log('— 重点年份加权 —');
+const fset = { focused: 1, focusYears: [2023], focusWeight: 0.6 };
+ok('命中重点年份返回权重', S.focusWeight({ w: 'a', y: [2023] }, fset) === 0.6);
+ok('非重点年份权重为 1', S.focusWeight({ w: 'b', y: [2015] }, fset) === 1);
+ok('多个年份命中其一即算重点', S.isFocus({ w: 'c', y: [2015, 2023] }, fset) === true);
+ok('非重点词 isFocus 为 false', S.isFocus({ w: 'd', y: [2015] }, fset) === false);
+ok('没设重点年份时一律不加权', S.focusWeight({ w: 'e', y: [2023] }, {}) === 1);
+ok('自己加的词（无年份）不加权', S.focusWeight({ w: 'f', y: [] }, fset) === 1);
+
+const rc = { state: 'review', step: 0, ease: 2.5, ivl: 30, due: T0, reps: 5, lapses: 0, last: 0, suspended: false };
+const norm = S.scheduleRaw(rc, 2, T0);
+const wtd = S.schedule(rc, 2, T0, 0.6);
+ok('重点词间隔被缩短（' + norm.ivl + ' → ' + wtd.ivl + ' 天）', wtd.ivl < norm.ivl && wtd.ivl >= 1);
+ok('重点词到期时间跟着变早', Math.abs((wtd.due - T0) - wtd.ivl * DAY) <= 0.12 * wtd.ivl * DAY + 1);
+ok('权重为 1 时与原调度完全一致', S.schedule(rc, 2, T0, 1).ivl === norm.ivl);
+ok('权重不会把间隔压到 0 以下', S.schedule(rc, 2, T0, 0.3).ivl >= 1, String(S.schedule(rc, 2, T0, 0.3).ivl));
+ok('学习态不受权重影响', S.schedule(S.newCard(T0), 0, T0, 0.6).state === 'learning');
+ok('按钮提示也会反映加权的间隔', /\d/.test(S.previewIntervals(rc, T0, 0.6)[2]));
+
+const fw = [];
+for (let i = 0; i < 6; i++) fw.push({ w: 'n' + i, y: [2023] });
+for (let i = 0; i < 6; i++) fw.push({ w: 'o' + i, y: [2015] });
+const fstore = { settings: { newPerDay: 4, focusYears: [2023], focusWeight: 0.6, shuffleNew: false }, cards: {}, log: {} };
+const fq = S.buildQueue(fw, fstore, T0);
+ok('新词额度优先给重点年份', fq.ids.length === 4 && fq.ids.every(id => id[0] === 'n'), fq.ids.join(','));
+ok('报告重点新词数量', fq.focusNew === 6 && fq.focusNewPicked === 4, fq.focusNew + ' / ' + fq.focusNewPicked);
+
+fstore.cards.n1 = { state: 'review', step: 0, ease: 2.5, ivl: 5, due: T0 - 2 * DAY, reps: 3, lapses: 0, last: 0, suspended: false };
+fstore.cards.o1 = { state: 'review', step: 0, ease: 2.5, ivl: 5, due: T0 - 5 * DAY, reps: 3, lapses: 0, last: 0, suspended: false };
+fstore.log[S.todayKey(T0)] = { new: 4, rev: 0, g: [0, 0, 0, 0] };
+const fq2 = S.buildQueue(fw, fstore, T0);
+ok('到期卡片里重点词排最前（哪怕到期更晚）', fq2.ids[0] === 'n1', fq2.ids.join(','));
+ok('报告重点到期数', fq2.focusDue === 1, String(fq2.focusDue));
+const fsum = S.summarize(fw, fstore, T0);
+ok('统计里单列出重点块', fsum.focus.total === 6 && fsum.focus.due === 1, JSON.stringify(fsum.focus));
+
 console.log('\n通过 ' + pass + ' 项，失败 ' + fail + ' 项');
 process.exit(fail ? 1 : 0);
