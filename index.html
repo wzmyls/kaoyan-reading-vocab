@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>考研阅读生词记忆器</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="brand">考研阅读生词<small id="brandSub"></small></div>
+      <div class="tabs" id="tabs">
+        <button data-view="review" class="on">背诵</button>
+        <button data-view="drill">辨析</button>
+        <button data-view="list">词表</button>
+        <button data-view="stats">统计</button>
+      </div>
+    </div>
+    <div class="chips" id="chips"></div>
+  </div>
+</header>
+<div class="wrap">
+  <div id="lsWarn" class="warnbox hide" style="margin-top:14px"></div>
+  <div id="view"></div>
+</div>
+<script src="assets/srs.js"></script>
+<script src="data.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,2910 @@
+{
+ "words": [
+  {
+   "w": "favor",
+   "own": "支持",
+   "note": "",
+   "y": [
+    2012
+   ],
+   "att": false
+  },
+  {
+   "w": "fulfill",
+   "own": "履行",
+   "note": "",
+   "y": [
+    2012
+   ],
+   "att": false
+  },
+  {
+   "w": "contend",
+   "own": "争论",
+   "note": "",
+   "y": [
+    2012
+   ],
+   "att": false
+  },
+  {
+   "w": "extend",
+   "own": "扩展",
+   "note": "",
+   "y": [
+    2012
+   ],
+   "att": false
+  },
+  {
+   "w": "perceptive",
+   "own": "敏锐的",
+   "note": "",
+   "y": [
+    2012
+   ],
+   "att": false
+  },
+  {
+   "w": "subtle",
+   "own": "微妙的；不易察觉的",
+   "note": "",
+   "y": [
+    2012
+   ],
+   "att": false
+  },
+  {
+   "w": "conscious",
+   "own": "注意到；意识到",
+   "note": "",
+   "y": [
+    2012
+   ],
+   "att": false
+  },
+  {
+   "w": "steer",
+   "own": "引导",
+   "note": "",
+   "y": [
+    2012
+   ],
+   "att": false
+  },
+  {
+   "w": "stare",
+   "own": "凝视",
+   "note": "",
+   "y": [
+    2012
+   ],
+   "att": false
+  },
+  {
+   "w": "virtue",
+   "own": "美德",
+   "note": "",
+   "y": [
+    2012
+   ],
+   "att": false
+  },
+  {
+   "w": "stimulate",
+   "own": "刺激",
+   "note": "",
+   "y": [
+    2012
+   ],
+   "att": false
+  },
+  {
+   "w": "simulate",
+   "own": "模仿；模拟",
+   "note": "",
+   "y": [
+    2012
+   ],
+   "att": false
+  },
+  {
+   "w": "obstacle",
+   "own": "障碍",
+   "note": "",
+   "y": [
+    2012
+   ],
+   "att": false
+  },
+  {
+   "w": "adequate",
+   "own": "充分的",
+   "note": "",
+   "y": [
+    2012
+   ],
+   "att": false
+  },
+  {
+   "w": "involve",
+   "own": "牵涉；涉及",
+   "note": "",
+   "y": [
+    2012
+   ],
+   "att": false
+  },
+  {
+   "w": "abide",
+   "own": "遵守",
+   "note": "",
+   "y": [
+    2012
+   ],
+   "att": false
+  },
+  {
+   "w": "valid",
+   "own": "正当的；有效的",
+   "note": "",
+   "y": [
+    2012
+   ],
+   "att": false
+  },
+  {
+   "w": "invalid",
+   "own": "无效的",
+   "note": "",
+   "y": [
+    2012
+   ],
+   "att": false
+  },
+  {
+   "w": "conclude",
+   "own": "认定；得出结论",
+   "note": "",
+   "y": [
+    2012
+   ],
+   "att": false
+  },
+  {
+   "w": "pledge",
+   "own": "保证；承诺",
+   "note": "",
+   "y": [
+    2012
+   ],
+   "att": false
+  },
+  {
+   "w": "deception",
+   "own": "欺骗",
+   "note": "",
+   "y": [
+    2012
+   ],
+   "att": false
+  },
+  {
+   "w": "conception",
+   "own": "观念；设想",
+   "note": "",
+   "y": [
+    2012
+   ],
+   "att": false
+  },
+  {
+   "w": "exception",
+   "own": "例外",
+   "note": "",
+   "y": [
+    2012
+   ],
+   "att": false
+  },
+  {
+   "w": "exceptional",
+   "own": "杰出的；非凡的",
+   "note": "",
+   "y": [
+    2012
+   ],
+   "att": false
+  },
+  {
+   "w": "abound",
+   "own": "丰富；大量存在",
+   "note": "",
+   "y": [
+    2012
+   ],
+   "att": false
+  },
+  {
+   "w": "duplicate",
+   "own": "复制",
+   "note": "",
+   "y": [
+    2012
+   ],
+   "att": false
+  },
+  {
+   "w": "inspect",
+   "own": "检查",
+   "note": "",
+   "y": [
+    2012
+   ],
+   "att": false
+  },
+  {
+   "w": "respect",
+   "own": "尊重",
+   "note": "",
+   "y": [
+    2012
+   ],
+   "att": false
+  },
+  {
+   "w": "suspect",
+   "own": "猜想；怀疑",
+   "note": "",
+   "y": [
+    2012
+   ],
+   "att": false
+  },
+  {
+   "w": "aspect",
+   "own": "方面；角度",
+   "note": "",
+   "y": [
+    2012
+   ],
+   "att": false
+  },
+  {
+   "w": "prime",
+   "own": "主要的；最好的",
+   "note": "",
+   "y": [
+    2012
+   ],
+   "att": false
+  },
+  {
+   "w": "crime",
+   "own": "犯罪",
+   "note": "",
+   "y": [
+    2012
+   ],
+   "att": false
+  },
+  {
+   "w": "rid",
+   "own": "摆脱",
+   "note": "",
+   "y": [
+    2012
+   ],
+   "att": false
+  },
+  {
+   "w": "rally",
+   "own": "集合",
+   "note": "",
+   "y": [
+    2012
+   ],
+   "att": false
+  },
+  {
+   "w": "prudent",
+   "own": "谨慎的",
+   "note": "",
+   "y": [
+    2012
+   ],
+   "att": false
+  },
+  {
+   "w": "augment",
+   "own": "增加",
+   "note": "",
+   "y": [
+    2012
+   ],
+   "att": false
+  },
+  {
+   "w": "barrier",
+   "own": "障碍",
+   "note": "",
+   "y": [
+    2012
+   ],
+   "att": false
+  },
+  {
+   "w": "condemning",
+   "own": "谴责的",
+   "note": "",
+   "y": [
+    2012
+   ],
+   "att": true
+  },
+  {
+   "w": "profound",
+   "own": "深刻的",
+   "note": "",
+   "y": [
+    2012
+   ],
+   "att": true
+  },
+  {
+   "w": "dishonoring",
+   "own": "违背；使蒙羞",
+   "note": "原记录释义不完全确定",
+   "y": [
+    2012
+   ],
+   "att": true
+  },
+  {
+   "w": "indifference",
+   "own": "漠不关心",
+   "note": "",
+   "y": [
+    2012
+   ],
+   "att": true
+  },
+  {
+   "w": "sold",
+   "own": "售；卖出",
+   "note": "原笔迹略有不确定",
+   "y": [
+    2013
+   ],
+   "att": false
+  },
+  {
+   "w": "inventory",
+   "own": "库存",
+   "note": "",
+   "y": [
+    2013
+   ],
+   "att": false
+  },
+  {
+   "w": "hijack",
+   "own": "劫持",
+   "note": "",
+   "y": [
+    2013
+   ],
+   "att": false
+  },
+  {
+   "w": "conscious",
+   "own": "意识到",
+   "note": "",
+   "y": [
+    2013
+   ],
+   "att": false
+  },
+  {
+   "w": "vanity",
+   "own": "虚荣",
+   "note": "",
+   "y": [
+    2013
+   ],
+   "att": false
+  },
+  {
+   "w": "obsess",
+   "own": "着迷；使着迷",
+   "note": "",
+   "y": [
+    2013
+   ],
+   "att": false
+  },
+  {
+   "w": "satire",
+   "own": "讽刺",
+   "note": "",
+   "y": [
+    2013
+   ],
+   "att": false
+  },
+  {
+   "w": "extravagant",
+   "own": "奢侈的；铺张的",
+   "note": "",
+   "y": [
+    2013
+   ],
+   "att": false
+  },
+  {
+   "w": "quarrel",
+   "own": "争吵",
+   "note": "",
+   "y": [
+    2013
+   ],
+   "att": false
+  },
+  {
+   "w": "explicit",
+   "own": "明确的",
+   "note": "",
+   "y": [
+    2013
+   ],
+   "att": false
+  },
+  {
+   "w": "comply",
+   "own": "遵守；服从",
+   "note": "",
+   "y": [
+    2013
+   ],
+   "att": false
+  },
+  {
+   "w": "upset",
+   "own": "难过；沮丧",
+   "note": "",
+   "y": [
+    2013
+   ],
+   "att": false
+  },
+  {
+   "w": "conceive",
+   "own": "设想",
+   "note": "",
+   "y": [
+    2013
+   ],
+   "att": false
+  },
+  {
+   "w": "crucial",
+   "own": "关键的",
+   "note": "",
+   "y": [
+    2013
+   ],
+   "att": false
+  },
+  {
+   "w": "adopt",
+   "own": "采纳；接受",
+   "note": "",
+   "y": [
+    2013
+   ],
+   "att": false
+  },
+  {
+   "w": "adapt",
+   "own": "适应",
+   "note": "",
+   "y": [
+    2013
+   ],
+   "att": false
+  },
+  {
+   "w": "optimistic",
+   "own": "乐观的",
+   "note": "",
+   "y": [
+    2013
+   ],
+   "att": false
+  },
+  {
+   "w": "objective",
+   "own": "客观的；目标",
+   "note": "",
+   "y": [
+    2013
+   ],
+   "att": false
+  },
+  {
+   "w": "abundant",
+   "own": "丰富的",
+   "note": "",
+   "y": [
+    2013
+   ],
+   "att": false
+  },
+  {
+   "w": "prospect",
+   "own": "前景",
+   "note": "",
+   "y": [
+    2013
+   ],
+   "att": false
+  },
+  {
+   "w": "withhold",
+   "own": "隐瞒；扣留",
+   "note": "",
+   "y": [
+    2013
+   ],
+   "att": false
+  },
+  {
+   "w": "constitution",
+   "own": "宪法",
+   "note": "",
+   "y": [
+    2013
+   ],
+   "att": false
+  },
+  {
+   "w": "undermine",
+   "own": "削弱；破坏",
+   "note": "",
+   "y": [
+    2013
+   ],
+   "att": false
+  },
+  {
+   "w": "deceive",
+   "own": "欺骗",
+   "note": "",
+   "y": [
+    2013
+   ],
+   "att": false
+  },
+  {
+   "w": "indulgence",
+   "own": "纵容",
+   "note": "",
+   "y": [
+    2013
+   ],
+   "att": true
+  },
+  {
+   "w": "skepticism",
+   "own": "怀疑；怀疑态度",
+   "note": "",
+   "y": [
+    2013
+   ],
+   "att": true
+  },
+  {
+   "w": "accusation",
+   "own": "控诉；指控",
+   "note": "",
+   "y": [
+    2013
+   ],
+   "att": true
+  },
+  {
+   "w": "enthusiasm",
+   "own": "热情",
+   "note": "",
+   "y": [
+    2013
+   ],
+   "att": true
+  },
+  {
+   "w": "satire",
+   "own": "讽刺",
+   "note": "",
+   "y": [
+    2013
+   ],
+   "att": true
+  },
+  {
+   "w": "allowance",
+   "own": "津贴",
+   "note": "之前误识别成了 allow once，这里已更正",
+   "y": [
+    2014
+   ],
+   "att": false
+  },
+  {
+   "w": "benefits",
+   "own": "救济金；福利",
+   "note": "",
+   "y": [
+    2014
+   ],
+   "att": false
+  },
+  {
+   "w": "grant",
+   "own": "拨款",
+   "note": "",
+   "y": [
+    2014
+   ],
+   "att": false
+  },
+  {
+   "w": "insult",
+   "own": "侮辱",
+   "note": "",
+   "y": [
+    2014
+   ],
+   "att": false
+  },
+  {
+   "w": "result",
+   "own": "结果",
+   "note": "",
+   "y": [
+    2014
+   ],
+   "att": false
+  },
+  {
+   "w": "conditional",
+   "own": "有条件的",
+   "note": "",
+   "y": [
+    2014
+   ],
+   "att": false
+  },
+  {
+   "w": "indulge",
+   "own": "纵容；沉溺于",
+   "note": "",
+   "y": [
+    2014
+   ],
+   "att": false
+  },
+  {
+   "w": "demand",
+   "own": "需求；要求",
+   "note": "",
+   "y": [
+    2014
+   ],
+   "att": false
+  },
+  {
+   "w": "tuition",
+   "own": "学费",
+   "note": "",
+   "y": [
+    2014
+   ],
+   "att": false
+  },
+  {
+   "w": "pursue",
+   "own": "追逐；追求",
+   "note": "",
+   "y": [
+    2014
+   ],
+   "att": false
+  },
+  {
+   "w": "persuade",
+   "own": "说服",
+   "note": "",
+   "y": [
+    2014
+   ],
+   "att": false
+  },
+  {
+   "w": "association",
+   "own": "协会；联系",
+   "note": "",
+   "y": [
+    2014
+   ],
+   "att": false
+  },
+  {
+   "w": "resistance",
+   "own": "反对；抵抗",
+   "note": "",
+   "y": [
+    2014
+   ],
+   "att": false
+  },
+  {
+   "w": "stern",
+   "own": "严厉的",
+   "note": "",
+   "y": [
+    2014
+   ],
+   "att": false
+  },
+  {
+   "w": "aggravate",
+   "own": "使恶化",
+   "note": "",
+   "y": [
+    2014
+   ],
+   "att": false
+  },
+  {
+   "w": "recipient",
+   "own": "接收者",
+   "note": "",
+   "y": [
+    2014
+   ],
+   "att": false
+  },
+  {
+   "w": "dispute",
+   "own": "争议",
+   "note": "",
+   "y": [
+    2014
+   ],
+   "att": false
+  },
+  {
+   "w": "despite",
+   "own": "尽管",
+   "note": "",
+   "y": [
+    2014
+   ],
+   "att": false
+  },
+  {
+   "w": "exclusive",
+   "own": "专门的；独有的",
+   "note": "",
+   "y": [
+    2014
+   ],
+   "att": false
+  },
+  {
+   "w": "congress",
+   "own": "国会",
+   "note": "",
+   "y": [
+    2014
+   ],
+   "att": false
+  },
+  {
+   "w": "constitution",
+   "own": "宪法",
+   "note": "",
+   "y": [
+    2014
+   ],
+   "att": false
+  },
+  {
+   "w": "imply",
+   "own": "暗示",
+   "note": "",
+   "y": [
+    2014
+   ],
+   "att": false
+  },
+  {
+   "w": "grace",
+   "own": "恩赐；优雅",
+   "note": "",
+   "y": [
+    2014
+   ],
+   "att": false
+  },
+  {
+   "w": "approval",
+   "own": "认可；赞同",
+   "note": "",
+   "y": [
+    2014
+   ],
+   "att": true
+  },
+  {
+   "w": "embarrass",
+   "own": "使尴尬",
+   "note": "",
+   "y": [
+    2015
+   ],
+   "att": false
+  },
+  {
+   "w": "scandal",
+   "own": "丑闻",
+   "note": "",
+   "y": [
+    2015
+   ],
+   "att": false
+  },
+  {
+   "w": "embody",
+   "own": "代表；体现",
+   "note": "",
+   "y": [
+    2015
+   ],
+   "att": false
+  },
+  {
+   "w": "bizarre",
+   "own": "怪异的",
+   "note": "",
+   "y": [
+    2015
+   ],
+   "att": false
+  },
+  {
+   "w": "strive",
+   "own": "努力；奋斗",
+   "note": "",
+   "y": [
+    2015
+   ],
+   "att": false
+  },
+  {
+   "w": "strike",
+   "own": "罢工；打击",
+   "note": "",
+   "y": [
+    2015
+   ],
+   "att": false
+  },
+  {
+   "w": "preserve",
+   "own": "保持；保护",
+   "note": "",
+   "y": [
+    2015
+   ],
+   "att": false
+  },
+  {
+   "w": "conservation",
+   "own": "保护；保存",
+   "note": "",
+   "y": [
+    2015
+   ],
+   "att": false
+  },
+  {
+   "w": "reign",
+   "own": "统治",
+   "note": "",
+   "y": [
+    2015
+   ],
+   "att": false
+  },
+  {
+   "w": "inherit",
+   "own": "继承",
+   "note": "",
+   "y": [
+    2015
+   ],
+   "att": false
+  },
+  {
+   "w": "adhere",
+   "own": "坚持；遵守",
+   "note": "",
+   "y": [
+    2015
+   ],
+   "att": false
+  },
+  {
+   "w": "moral",
+   "own": "道德的",
+   "note": "",
+   "y": [
+    2015
+   ],
+   "att": false
+  },
+  {
+   "w": "conscience",
+   "own": "良知；良心",
+   "note": "",
+   "y": [
+    2015
+   ],
+   "att": false
+  },
+  {
+   "w": "trial",
+   "own": "审判；试验",
+   "note": "",
+   "y": [
+    2015
+   ],
+   "att": false
+  },
+  {
+   "w": "unfolds",
+   "own": "展开；逐渐显露",
+   "note": "",
+   "y": [
+    2015
+   ],
+   "att": false
+  },
+  {
+   "w": "dearth",
+   "own": "缺乏",
+   "note": "",
+   "y": [
+    2015
+   ],
+   "att": false
+  },
+  {
+   "w": "abuse",
+   "own": "滥用；虐待",
+   "note": "",
+   "y": [
+    2015
+   ],
+   "att": false
+  },
+  {
+   "w": "misuse",
+   "own": "滥用；误用",
+   "note": "",
+   "y": [
+    2015
+   ],
+   "att": false
+  },
+  {
+   "w": "innocent",
+   "own": "无辜的",
+   "note": "",
+   "y": [
+    2015
+   ],
+   "att": false
+  },
+  {
+   "w": "conspiracy",
+   "own": "阴谋",
+   "note": "",
+   "y": [
+    2015
+   ],
+   "att": false
+  },
+  {
+   "w": "distribution",
+   "own": "分配",
+   "note": "",
+   "y": [
+    2015
+   ],
+   "att": false
+  },
+  {
+   "w": "distort",
+   "own": "扭曲",
+   "note": "",
+   "y": [
+    2015
+   ],
+   "att": false
+  },
+  {
+   "w": "indifference",
+   "own": "漠不关心",
+   "note": "",
+   "y": [
+    2015
+   ],
+   "att": true
+  },
+  {
+   "w": "legacy",
+   "own": "遗产",
+   "note": "",
+   "y": [
+    2016
+   ],
+   "att": false
+  },
+  {
+   "w": "heritage",
+   "own": "遗产；传统",
+   "note": "",
+   "y": [
+    2016
+   ],
+   "att": false
+  },
+  {
+   "w": "estate",
+   "own": "财产；遗产",
+   "note": "",
+   "y": [
+    2016
+   ],
+   "att": false
+  },
+  {
+   "w": "loyal",
+   "own": "忠实的",
+   "note": "",
+   "y": [
+    2016
+   ],
+   "att": false
+  },
+  {
+   "w": "aggressive",
+   "own": "好斗的；进取的",
+   "note": "",
+   "y": [
+    2016
+   ],
+   "att": false
+  },
+  {
+   "w": "facilitate",
+   "own": "促进；使便利",
+   "note": "",
+   "y": [
+    2016
+   ],
+   "att": false
+  },
+  {
+   "w": "cherish",
+   "own": "珍视",
+   "note": "",
+   "y": [
+    2016
+   ],
+   "att": false
+  },
+  {
+   "w": "incentive",
+   "own": "诱因；激励因素",
+   "note": "",
+   "y": [
+    2016
+   ],
+   "att": false
+  },
+  {
+   "w": "ditch",
+   "own": "丢弃",
+   "note": "",
+   "y": [
+    2016
+   ],
+   "att": false
+  },
+  {
+   "w": "eliminate",
+   "own": "消除",
+   "note": "",
+   "y": [
+    2016
+   ],
+   "att": false
+  },
+  {
+   "w": "blunder",
+   "own": "愚蠢的错误",
+   "note": "",
+   "y": [
+    2016
+   ],
+   "att": false
+  },
+  {
+   "w": "monetary",
+   "own": "货币的",
+   "note": "",
+   "y": [
+    2016
+   ],
+   "att": false
+  },
+  {
+   "w": "prosecute",
+   "own": "起诉",
+   "note": "",
+   "y": [
+    2016
+   ],
+   "att": false
+  },
+  {
+   "w": "diffuse",
+   "own": "扩散的；传播",
+   "note": "",
+   "y": [
+    2016
+   ],
+   "att": false
+  },
+  {
+   "w": "corrupt",
+   "own": "腐败的；损坏",
+   "note": "原笔记释义为“打断”，需结合原句核对",
+   "y": [
+    2016
+   ],
+   "att": false
+  },
+  {
+   "w": "curb",
+   "own": "抑制",
+   "note": "",
+   "y": [
+    2016
+   ],
+   "att": false
+  },
+  {
+   "w": "disrupt",
+   "own": "打断；扰乱",
+   "note": "",
+   "y": [
+    2016
+   ],
+   "att": false
+  },
+  {
+   "w": "penalty",
+   "own": "惩罚；处罚",
+   "note": "",
+   "y": [
+    2016
+   ],
+   "att": false
+  },
+  {
+   "w": "invest",
+   "own": "投资",
+   "note": "",
+   "y": [
+    2016
+   ],
+   "att": false
+  },
+  {
+   "w": "investigate",
+   "own": "调查",
+   "note": "",
+   "y": [
+    2016
+   ],
+   "att": false
+  },
+  {
+   "w": "sentiment",
+   "own": "观点；情感",
+   "note": "",
+   "y": [
+    2016
+   ],
+   "att": false
+  },
+  {
+   "w": "disregard",
+   "own": "忽视",
+   "note": "",
+   "y": [
+    2016
+   ],
+   "att": false
+  },
+  {
+   "w": "crisis",
+   "own": "危机",
+   "note": "",
+   "y": [
+    2016
+   ],
+   "att": false
+  },
+  {
+   "w": "royal",
+   "own": "皇室的",
+   "note": "",
+   "y": [
+    2016
+   ],
+   "att": false
+  },
+  {
+   "w": "rural",
+   "own": "乡村的",
+   "note": "",
+   "y": [
+    2016
+   ],
+   "att": false
+  },
+  {
+   "w": "pleading",
+   "own": "呼吁；恳求",
+   "note": "",
+   "y": [
+    2016
+   ],
+   "att": false
+  },
+  {
+   "w": "approach",
+   "own": "方式；靠近",
+   "note": "",
+   "y": [
+    2016
+   ],
+   "att": false
+  },
+  {
+   "w": "ruin",
+   "own": "毁坏",
+   "note": "",
+   "y": [
+    2016
+   ],
+   "att": false
+  },
+  {
+   "w": "crowd",
+   "own": "拥挤；人群",
+   "note": "",
+   "y": [
+    2016
+   ],
+   "att": false
+  },
+  {
+   "w": "faith",
+   "own": "信心；信仰",
+   "note": "",
+   "y": [
+    2016
+   ],
+   "att": false
+  },
+  {
+   "w": "caring",
+   "own": "关心的；关怀",
+   "note": "原笔记释义不完全清晰",
+   "y": [
+    2016
+   ],
+   "att": false
+  },
+  {
+   "w": "threshold",
+   "own": "门槛",
+   "note": "",
+   "y": [
+    2016
+   ],
+   "att": false
+  },
+  {
+   "w": "approval",
+   "own": "通过；认可",
+   "note": "",
+   "y": [
+    2016
+   ],
+   "att": false
+  },
+  {
+   "w": "extreme",
+   "own": "极度的；极端的",
+   "note": "",
+   "y": [
+    2016
+   ],
+   "att": false
+  },
+  {
+   "w": "hint",
+   "own": "暗示",
+   "note": "",
+   "y": [
+    2016
+   ],
+   "att": false
+  },
+  {
+   "w": "enforce",
+   "own": "强制执行",
+   "note": "",
+   "y": [
+    2016
+   ],
+   "att": false
+  },
+  {
+   "w": "reinforce",
+   "own": "加强",
+   "note": "",
+   "y": [
+    2016
+   ],
+   "att": false
+  },
+  {
+   "w": "force",
+   "own": "强迫；力量",
+   "note": "",
+   "y": [
+    2016
+   ],
+   "att": false
+  },
+  {
+   "w": "sanction",
+   "own": "处罚；制裁",
+   "note": "",
+   "y": [
+    2016
+   ],
+   "att": false
+  },
+  {
+   "w": "elevate",
+   "own": "提高",
+   "note": "",
+   "y": [
+    2016
+   ],
+   "att": false
+  },
+  {
+   "w": "notion",
+   "own": "观念",
+   "note": "",
+   "y": [
+    2016
+   ],
+   "att": false
+  },
+  {
+   "w": "skepticism",
+   "own": "怀疑；怀疑态度",
+   "note": "",
+   "y": [
+    2016
+   ],
+   "att": true
+  },
+  {
+   "w": "convict",
+   "own": "定罪；判罪",
+   "note": "",
+   "y": [
+    2017
+   ],
+   "att": false
+  },
+  {
+   "w": "contempt",
+   "own": "轻蔑；藐视",
+   "note": "",
+   "y": [
+    2017
+   ],
+   "att": false
+  },
+  {
+   "w": "contemporary",
+   "own": "当代的",
+   "note": "",
+   "y": [
+    2017
+   ],
+   "att": false
+  },
+  {
+   "w": "nasty",
+   "own": "令人厌恶的；恶劣的",
+   "note": "",
+   "y": [
+    2017
+   ],
+   "att": false
+  },
+  {
+   "w": "concrete",
+   "own": "具体的；确定的",
+   "note": "",
+   "y": [
+    2017
+   ],
+   "att": false
+  },
+  {
+   "w": "contract",
+   "own": "合同",
+   "note": "",
+   "y": [
+    2017
+   ],
+   "att": false
+  },
+  {
+   "w": "eligible",
+   "own": "有资格的",
+   "note": "",
+   "y": [
+    2017
+   ],
+   "att": false
+  },
+  {
+   "w": "compact",
+   "own": "契约；紧凑的",
+   "note": "",
+   "y": [
+    2017
+   ],
+   "att": false
+  },
+  {
+   "w": "integrity",
+   "own": "正直；诚信",
+   "note": "",
+   "y": [
+    2017
+   ],
+   "att": false
+  },
+  {
+   "w": "virtue",
+   "own": "美德",
+   "note": "",
+   "y": [
+    2017
+   ],
+   "att": false
+  },
+  {
+   "w": "conscience",
+   "own": "良知；良心",
+   "note": "",
+   "y": [
+    2017
+   ],
+   "att": false
+  },
+  {
+   "w": "premise",
+   "own": "前提",
+   "note": "",
+   "y": [
+    2017
+   ],
+   "att": false
+  },
+  {
+   "w": "compromise",
+   "own": "妥协",
+   "note": "",
+   "y": [
+    2017
+   ],
+   "att": false
+  },
+  {
+   "w": "exempt",
+   "own": "免除；豁免",
+   "note": "",
+   "y": [
+    2017
+   ],
+   "att": false
+  },
+  {
+   "w": "conscience",
+   "own": "良知；良心",
+   "note": "原笔记中重复出现，暂保留",
+   "y": [
+    2017
+   ],
+   "att": false
+  },
+  {
+   "w": "annoy",
+   "own": "使烦恼；使困扰",
+   "note": "",
+   "y": [
+    2017
+   ],
+   "att": false
+  },
+  {
+   "w": "convert",
+   "own": "转化",
+   "note": "",
+   "y": [
+    2017
+   ],
+   "att": false
+  },
+  {
+   "w": "consistent",
+   "own": "一致的",
+   "note": "",
+   "y": [
+    2017
+   ],
+   "att": false
+  },
+  {
+   "w": "outcome",
+   "own": "结果；成果",
+   "note": "",
+   "y": [
+    2017
+   ],
+   "att": false
+  },
+  {
+   "w": "identify",
+   "own": "认出；确认",
+   "note": "",
+   "y": [
+    2017
+   ],
+   "att": false
+  },
+  {
+   "w": "define",
+   "own": "下定义；说明",
+   "note": "",
+   "y": [
+    2017
+   ],
+   "att": false
+  },
+  {
+   "w": "interpret",
+   "own": "理解；解释",
+   "note": "",
+   "y": [
+    2017
+   ],
+   "att": false
+  },
+  {
+   "w": "interrupt",
+   "own": "打断",
+   "note": "",
+   "y": [
+    2017
+   ],
+   "att": false
+  },
+  {
+   "w": "opinion",
+   "own": "意见；看法",
+   "note": "",
+   "y": [
+    2017
+   ],
+   "att": false
+  },
+  {
+   "w": "option",
+   "own": "选择；选项",
+   "note": "",
+   "y": [
+    2017
+   ],
+   "att": false
+  },
+  {
+   "w": "exclude",
+   "own": "排除；不包括",
+   "note": "",
+   "y": [
+    2017
+   ],
+   "att": false
+  },
+  {
+   "w": "enlighten",
+   "own": "启发；开导",
+   "note": "",
+   "y": [
+    2017
+   ],
+   "att": false
+  },
+  {
+   "w": "essential",
+   "own": "必要的；本质的",
+   "note": "",
+   "y": [
+    2017
+   ],
+   "att": false
+  },
+  {
+   "w": "protest",
+   "own": "抗议",
+   "note": "",
+   "y": [
+    2017
+   ],
+   "att": false
+  },
+  {
+   "w": "fragile",
+   "own": "脆弱的",
+   "note": "",
+   "y": [
+    2017
+   ],
+   "att": false
+  },
+  {
+   "w": "renaissance",
+   "own": "复兴",
+   "note": "",
+   "y": [
+    2017
+   ],
+   "att": false
+  },
+  {
+   "w": "embrace",
+   "own": "拥抱；欣然接受",
+   "note": "",
+   "y": [
+    2017
+   ],
+   "att": false
+  },
+  {
+   "w": "heritage",
+   "own": "遗产；传统",
+   "note": "",
+   "y": [
+    2017
+   ],
+   "att": false
+  },
+  {
+   "w": "feats",
+   "own": "功绩；壮举",
+   "note": "",
+   "y": [
+    2017
+   ],
+   "att": false
+  },
+  {
+   "w": "hostile",
+   "own": "敌对的；有敌意的",
+   "note": "",
+   "y": [
+    2017
+   ],
+   "att": false
+  },
+  {
+   "w": "passive",
+   "own": "被动的；消极的",
+   "note": "",
+   "y": [
+    2017
+   ],
+   "att": false
+  },
+  {
+   "w": "dispute",
+   "own": "争议；抗争",
+   "note": "原笔记中文释义略有不确定",
+   "y": [
+    2017
+   ],
+   "att": false
+  },
+  {
+   "w": "process",
+   "own": "过程；审核",
+   "note": "",
+   "y": [
+    2017
+   ],
+   "att": false
+  },
+  {
+   "w": "progress",
+   "own": "进展",
+   "note": "",
+   "y": [
+    2017
+   ],
+   "att": false
+  },
+  {
+   "w": "proceed",
+   "own": "继续；开展",
+   "note": "",
+   "y": [
+    2017
+   ],
+   "att": false
+  },
+  {
+   "w": "implement",
+   "own": "实施；执行",
+   "note": "",
+   "y": [
+    2017
+   ],
+   "att": false
+  },
+  {
+   "w": "supplement",
+   "own": "补充",
+   "note": "",
+   "y": [
+    2017
+   ],
+   "att": false
+  },
+  {
+   "w": "reluctant",
+   "own": "不情愿的；勉强的",
+   "note": "",
+   "y": [
+    2017
+   ],
+   "att": false
+  },
+  {
+   "w": "sarcastic",
+   "own": "讽刺的；挖苦的",
+   "note": "",
+   "y": [
+    2017
+   ],
+   "att": true
+  },
+  {
+   "w": "retire",
+   "own": "退休",
+   "note": "",
+   "y": [
+    2018
+   ],
+   "att": false
+  },
+  {
+   "w": "withdrawal",
+   "own": "取款；撤出；撤回",
+   "note": "",
+   "y": [
+    2018
+   ],
+   "att": false
+  },
+  {
+   "w": "interfere",
+   "own": "干涉；妨碍",
+   "note": "",
+   "y": [
+    2018
+   ],
+   "att": false
+  },
+  {
+   "w": "shrink",
+   "own": "退缩；缩减",
+   "note": "",
+   "y": [
+    2018
+   ],
+   "att": false
+  },
+  {
+   "w": "band-aid",
+   "own": "权宜之计；临时补救办法",
+   "note": "",
+   "y": [
+    2018
+   ],
+   "att": false
+  },
+  {
+   "w": "verdict",
+   "own": "裁决",
+   "note": "",
+   "y": [
+    2018
+   ],
+   "att": false
+  },
+  {
+   "w": "vague",
+   "own": "模糊的",
+   "note": "",
+   "y": [
+    2018
+   ],
+   "att": false
+  },
+  {
+   "w": "contemptuous",
+   "own": "蔑视的；轻蔑的",
+   "note": "",
+   "y": [
+    2018
+   ],
+   "att": false
+  },
+  {
+   "w": "survey",
+   "own": "调查",
+   "note": "",
+   "y": [
+    2018
+   ],
+   "att": false
+  },
+  {
+   "w": "conscious",
+   "own": "注意到；意识到",
+   "note": "",
+   "y": [
+    2018
+   ],
+   "att": false
+  },
+  {
+   "w": "exaggerate",
+   "own": "夸大；夸张",
+   "note": "",
+   "y": [
+    2018
+   ],
+   "att": false
+  },
+  {
+   "w": "discipline",
+   "own": "纪律；原则",
+   "note": "",
+   "y": [
+    2018
+   ],
+   "att": false
+  },
+  {
+   "w": "boast",
+   "own": "吹嘘；自夸",
+   "note": "",
+   "y": [
+    2018
+   ],
+   "att": false
+  },
+  {
+   "w": "boost",
+   "own": "推动；促进；提高",
+   "note": "",
+   "y": [
+    2018
+   ],
+   "att": false
+  },
+  {
+   "w": "mutual",
+   "own": "相互的",
+   "note": "",
+   "y": [
+    2018
+   ],
+   "att": false
+  },
+  {
+   "w": "revive",
+   "own": "唤起；复兴",
+   "note": "",
+   "y": [
+    2018
+   ],
+   "att": false
+  },
+  {
+   "w": "revenue",
+   "own": "财政收入；收益",
+   "note": "",
+   "y": [
+    2018
+   ],
+   "att": false
+  },
+  {
+   "w": "rival",
+   "own": "竞争者；竞争",
+   "note": "",
+   "y": [
+    2018
+   ],
+   "att": false
+  },
+  {
+   "w": "groundless",
+   "own": "无根据的",
+   "note": "",
+   "y": [
+    2018
+   ],
+   "att": false
+  },
+  {
+   "w": "concrete",
+   "own": "具体的；确定的",
+   "note": "",
+   "y": [
+    2018
+   ],
+   "att": false
+  },
+  {
+   "w": "hostility",
+   "own": "敌意；敌对",
+   "note": "",
+   "y": [
+    2018
+   ],
+   "att": false
+  },
+  {
+   "w": "discontent",
+   "own": "不满；不满情绪",
+   "note": "",
+   "y": [
+    2018
+   ],
+   "att": true
+  },
+  {
+   "w": "imposed",
+   "own": "强加；推行",
+   "note": "",
+   "y": [
+    2019
+   ],
+   "att": false
+  },
+  {
+   "w": "survey",
+   "own": "调查",
+   "note": "",
+   "y": [
+    2019
+   ],
+   "att": false
+  },
+  {
+   "w": "executives",
+   "own": "高管；管理人员",
+   "note": "",
+   "y": [
+    2019
+   ],
+   "att": false
+  },
+  {
+   "w": "transient",
+   "own": "短暂的",
+   "note": "",
+   "y": [
+    2019
+   ],
+   "att": false
+  },
+  {
+   "w": "penalty",
+   "own": "处罚",
+   "note": "",
+   "y": [
+    2019
+   ],
+   "att": false
+  },
+  {
+   "w": "feasibility",
+   "own": "可行性",
+   "note": "",
+   "y": [
+    2019
+   ],
+   "att": false
+  },
+  {
+   "w": "incentives",
+   "own": "激励因素；动机",
+   "note": "",
+   "y": [
+    2019
+   ],
+   "att": false
+  },
+  {
+   "w": "identical",
+   "own": "相同的",
+   "note": "",
+   "y": [
+    2019
+   ],
+   "att": false
+  },
+  {
+   "w": "identity",
+   "own": "身份；同一性",
+   "note": "",
+   "y": [
+    2019
+   ],
+   "att": false
+  },
+  {
+   "w": "identify",
+   "own": "认出；确认",
+   "note": "",
+   "y": [
+    2019
+   ],
+   "att": false
+  },
+  {
+   "w": "evade",
+   "own": "逃避；规避",
+   "note": "",
+   "y": [
+    2019
+   ],
+   "att": false
+  },
+  {
+   "w": "pledge",
+   "own": "承诺；保证",
+   "note": "",
+   "y": [
+    2019
+   ],
+   "att": false
+  },
+  {
+   "w": "statement",
+   "own": "声明；陈述",
+   "note": "",
+   "y": [
+    2019
+   ],
+   "att": false
+  },
+  {
+   "w": "transparent",
+   "own": "透明的",
+   "note": "",
+   "y": [
+    2019
+   ],
+   "att": false
+  },
+  {
+   "w": "spark",
+   "own": "火花；引发",
+   "note": "",
+   "y": [
+    2019
+   ],
+   "att": false
+  },
+  {
+   "w": "affirmation",
+   "own": "肯定；确认",
+   "note": "",
+   "y": [
+    2019
+   ],
+   "att": false
+  },
+  {
+   "w": "contempt",
+   "own": "蔑视",
+   "note": "",
+   "y": [
+    2019
+   ],
+   "att": false
+  },
+  {
+   "w": "light",
+   "own": "灯光；轻的",
+   "note": "",
+   "y": [
+    2019
+   ],
+   "att": false
+  },
+  {
+   "w": "revenue",
+   "own": "财政收入；收益",
+   "note": "",
+   "y": [
+    2019
+   ],
+   "att": false
+  },
+  {
+   "w": "comply",
+   "own": "遵守；服从",
+   "note": "",
+   "y": [
+    2019
+   ],
+   "att": false
+  },
+  {
+   "w": "adverse",
+   "own": "不利的；负面的",
+   "note": "",
+   "y": [
+    2019
+   ],
+   "att": true
+  },
+  {
+   "w": "affirmation",
+   "own": "肯定；确认",
+   "note": "",
+   "y": [
+    2019
+   ],
+   "att": true
+  },
+  {
+   "w": "contempt",
+   "own": "蔑视",
+   "note": "",
+   "y": [
+    2019
+   ],
+   "att": true
+  },
+  {
+   "w": "discriminate",
+   "own": "歧视；区别对待",
+   "note": "",
+   "y": [
+    2020
+   ],
+   "att": false
+  },
+  {
+   "w": "grant",
+   "own": "允许；给予",
+   "note": "",
+   "y": [
+    2020
+   ],
+   "att": false
+  },
+  {
+   "w": "levy",
+   "own": "征税；征收",
+   "note": "",
+   "y": [
+    2020
+   ],
+   "att": false
+  },
+  {
+   "w": "revenue",
+   "own": "收益；收入",
+   "note": "",
+   "y": [
+    2020
+   ],
+   "att": false
+  },
+  {
+   "w": "sanctions",
+   "own": "制裁；处罚",
+   "note": "",
+   "y": [
+    2020
+   ],
+   "att": false
+  },
+  {
+   "w": "speculate",
+   "own": "推测；猜测",
+   "note": "",
+   "y": [
+    2020
+   ],
+   "att": false
+  },
+  {
+   "w": "sensible",
+   "own": "明智的；合理的",
+   "note": "",
+   "y": [
+    2020
+   ],
+   "att": false
+  },
+  {
+   "w": "sensitive",
+   "own": "敏感的",
+   "note": "",
+   "y": [
+    2020
+   ],
+   "att": false
+  },
+  {
+   "w": "deceive",
+   "own": "欺骗",
+   "note": "",
+   "y": [
+    2020
+   ],
+   "att": false
+  },
+  {
+   "w": "prominent",
+   "own": "杰出的；显著的",
+   "note": "",
+   "y": [
+    2020
+   ],
+   "att": false
+  },
+  {
+   "w": "dominate",
+   "own": "支配；占主导地位",
+   "note": "",
+   "y": [
+    2020
+   ],
+   "att": false
+  },
+  {
+   "w": "margin",
+   "own": "利润；边缘",
+   "note": "",
+   "y": [
+    2020
+   ],
+   "att": false
+  },
+  {
+   "w": "desperate",
+   "own": "不顾一切的；绝望的",
+   "note": "",
+   "y": [
+    2020
+   ],
+   "att": false
+  },
+  {
+   "w": "content",
+   "own": "内容；满足的",
+   "note": "",
+   "y": [
+    2020
+   ],
+   "att": false
+  },
+  {
+   "w": "context",
+   "own": "背景；上下文",
+   "note": "",
+   "y": [
+    2020
+   ],
+   "att": false
+  },
+  {
+   "w": "contest",
+   "own": "比赛；争论",
+   "note": "",
+   "y": [
+    2020
+   ],
+   "att": false
+  },
+  {
+   "w": "contend",
+   "own": "争辩；争斗",
+   "note": "",
+   "y": [
+    2020
+   ],
+   "att": false
+  },
+  {
+   "w": "thrive",
+   "own": "兴旺；繁荣",
+   "note": "",
+   "y": [
+    2020
+   ],
+   "att": false
+  },
+  {
+   "w": "theft",
+   "own": "偷窃；盗窃",
+   "note": "",
+   "y": [
+    2020
+   ],
+   "att": false
+  },
+  {
+   "w": "render",
+   "own": "使得；使成为",
+   "note": "",
+   "y": [
+    2020
+   ],
+   "att": false
+  },
+  {
+   "w": "trial",
+   "own": "审判；试验",
+   "note": "",
+   "y": [
+    2020
+   ],
+   "att": false
+  },
+  {
+   "w": "impose",
+   "own": "强制实行；强加",
+   "note": "",
+   "y": [
+    2020
+   ],
+   "att": false
+  },
+  {
+   "w": "interference",
+   "own": "干涉；干扰",
+   "note": "",
+   "y": [
+    2020
+   ],
+   "att": false
+  },
+  {
+   "w": "irritated",
+   "own": "恼怒的；被激怒的",
+   "note": "",
+   "y": [
+    2020
+   ],
+   "att": false
+  },
+  {
+   "w": "underestimate",
+   "own": "低估",
+   "note": "",
+   "y": [
+    2020
+   ],
+   "att": false
+  },
+  {
+   "w": "feasibility",
+   "own": "可行性",
+   "note": "",
+   "y": [
+    2020
+   ],
+   "att": false
+  },
+  {
+   "w": "rage",
+   "own": "狂怒；暴怒；猛烈进行名词可表示强烈的愤怒，也可表示风靡一时的事物；作动词时可表示怒斥或猛烈持续",
+   "note": "",
+   "y": [],
+   "att": false
+  },
+  {
+   "w": "flaw",
+   "own": "缺陷；瑕疵；错误强调某人、某物或某个论证存在的不足",
+   "note": "",
+   "y": [],
+   "att": false
+  }
+ ],
+ "phrases": [
+  {
+   "w": "ought to",
+   "own": "应该",
+   "note": "",
+   "y": [
+    2012
+   ]
+  },
+  {
+   "w": "live by",
+   "own": "遵守；按照……生活",
+   "note": "",
+   "y": [
+    2012
+   ]
+  },
+  {
+   "w": "answer to",
+   "own": "相当于；对……负责（具体含义取决于语境）",
+   "note": "",
+   "y": [
+    2013
+   ]
+  },
+  {
+   "w": "knock off",
+   "own": "原笔记写作 knocked of，可能是 knocked off，具体含义待核对",
+   "note": "",
+   "y": [
+    2013
+   ]
+  },
+  {
+   "w": "is due to",
+   "own": "原记录保留；具体含义需要结合原句判断",
+   "note": "",
+   "y": [
+    2013
+   ]
+  },
+  {
+   "w": "set off",
+   "own": "激起；引发",
+   "note": "",
+   "y": [
+    2013
+   ]
+  },
+  {
+   "w": "after all",
+   "own": "毕竟",
+   "note": "",
+   "y": [
+    2013
+   ]
+  },
+  {
+   "w": "stand down",
+   "own": "退位；辞职；让位",
+   "note": "",
+   "y": [
+    2015
+   ]
+  },
+  {
+   "w": "aim for",
+   "own": "以……为目标；争取",
+   "note": "",
+   "y": [
+    2016
+   ]
+  },
+  {
+   "w": "allow for",
+   "own": "考虑到；顾及",
+   "note": "",
+   "y": [
+    2017
+   ]
+  },
+  {
+   "w": "the bulk of",
+   "own": "大部分；主体",
+   "note": "",
+   "y": [
+    2017
+   ]
+  },
+  {
+   "w": "interest group",
+   "own": "利益集团",
+   "note": "",
+   "y": [
+    2018
+   ]
+  },
+  {
+   "w": "mend one's ways",
+   "own": "改过自新",
+   "note": "原笔记写作 mended it ways，应为 mended its ways 或相应语境中的形式",
+   "y": [
+    2018
+   ]
+  },
+  {
+   "w": "fascinated by",
+   "own": "对……着迷",
+   "note": "",
+   "y": [
+    2019
+   ]
+  },
+  {
+   "w": "give a factual account",
+   "own": "提供事实性说明；客观描述",
+   "note": "",
+   "y": [
+    2019
+   ]
+  },
+  {
+   "w": "apt to",
+   "own": "易于；倾向于",
+   "note": "",
+   "y": [
+    2020
+   ]
+  },
+  {
+   "w": "booby prize",
+   "own": "安慰奖",
+   "note": "",
+   "y": [
+    2020
+   ]
+  },
+  {
+   "w": "commit to",
+   "own": "致力于；承诺做某事",
+   "note": "",
+   "y": [
+    2020
+   ]
+  },
+  {
+   "w": "frown on",
+   "own": "不赞成；反对",
+   "note": "",
+   "y": [
+    2020
+   ]
+  }
+ ],
+ "groups": [
+  {
+   "y": 2012,
+   "items": [
+    "contend",
+    "extend"
+   ]
+  },
+  {
+   "y": 2012,
+   "items": [
+    "deception",
+    "conception",
+    "exception",
+    "exceptional"
+   ]
+  },
+  {
+   "y": 2012,
+   "items": [
+    "inspect",
+    "respect",
+    "suspect",
+    "aspect"
+   ]
+  },
+  {
+   "y": 2012,
+   "items": [
+    "prime",
+    "crime"
+   ]
+  },
+  {
+   "y": 2012,
+   "items": [
+    "stimulate",
+    "simulate"
+   ]
+  },
+  {
+   "y": 2012,
+   "items": [
+    "steer",
+    "stare"
+   ]
+  },
+  {
+   "y": 2012,
+   "items": [
+    "valid",
+    "invalid"
+   ]
+  },
+  {
+   "y": 2013,
+   "items": [
+    "adopt",
+    "adapt"
+   ]
+  },
+  {
+   "y": 2013,
+   "items": [
+    "optimistic",
+    "objective"
+   ]
+  },
+  {
+   "y": 2014,
+   "items": [
+    "dispute",
+    "despite"
+   ]
+  },
+  {
+   "y": 2014,
+   "items": [
+    "pursue",
+    "persuade"
+   ]
+  },
+  {
+   "y": 2014,
+   "items": [
+    "insult",
+    "result"
+   ]
+  },
+  {
+   "y": 2015,
+   "items": [
+    "strive",
+    "strike"
+   ]
+  },
+  {
+   "y": 2015,
+   "items": [
+    "preserve",
+    "conservation"
+   ]
+  },
+  {
+   "y": 2015,
+   "items": [
+    "abuse",
+    "misuse"
+   ]
+  },
+  {
+   "y": 2015,
+   "items": [
+    "moral",
+    "conscience"
+   ]
+  },
+  {
+   "y": 2016,
+   "items": [
+    "legacy",
+    "heritage",
+    "estate"
+   ]
+  },
+  {
+   "y": 2016,
+   "items": [
+    "royal",
+    "rural"
+   ]
+  },
+  {
+   "y": 2016,
+   "items": [
+    "invest",
+    "investigate"
+   ]
+  },
+  {
+   "y": 2016,
+   "items": [
+    "enforce",
+    "reinforce",
+    "force"
+   ]
+  },
+  {
+   "y": 2016,
+   "items": [
+    "corrupt",
+    "curb",
+    "disrupt"
+   ]
+  },
+  {
+   "y": 2017,
+   "items": [
+    "contempt",
+    "contemporary"
+   ]
+  },
+  {
+   "y": 2017,
+   "items": [
+    "integrity",
+    "virtue",
+    "conscience"
+   ]
+  },
+  {
+   "y": 2017,
+   "items": [
+    "premise",
+    "compromise"
+   ]
+  },
+  {
+   "y": 2017,
+   "items": [
+    "opinion",
+    "option"
+   ]
+  },
+  {
+   "y": 2017,
+   "items": [
+    "process",
+    "progress",
+    "proceed"
+   ]
+  },
+  {
+   "y": 2017,
+   "items": [
+    "implement",
+    "supplement"
+   ]
+  },
+  {
+   "y": 2017,
+   "items": [
+    "identify",
+    "define"
+   ]
+  },
+  {
+   "y": 2017,
+   "items": [
+    "interpret",
+    "interrupt"
+   ]
+  },
+  {
+   "y": 2018,
+   "items": [
+    "boast",
+    "boost"
+   ]
+  },
+  {
+   "y": 2018,
+   "items": [
+    "revive",
+    "revenue",
+    "rival"
+   ]
+  },
+  {
+   "y": 2018,
+   "items": [
+    "contempt",
+    "contemptuous"
+   ]
+  },
+  {
+   "y": 2018,
+   "items": [
+    "concrete",
+    "groundless"
+   ]
+  },
+  {
+   "y": 2019,
+   "items": [
+    "identical",
+    "identity",
+    "identify"
+   ]
+  },
+  {
+   "y": 2019,
+   "items": [
+    "adverse",
+    "affirmation"
+   ]
+  },
+  {
+   "y": 2019,
+   "items": [
+    "penalty",
+    "feasibility"
+   ]
+  },
+  {
+   "y": 2019,
+   "items": [
+    "revenue",
+    "comply"
+   ]
+  }
+ ]
+}
