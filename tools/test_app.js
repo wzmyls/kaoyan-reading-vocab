@@ -112,6 +112,20 @@ ok('已自动建立会话', !!dbg0.session && dbg0.session.queue.length > 0, JSO
 ok('第一张卡是单词卡', !!dbg0.cur && !!(dbg0.cur.w), dbg0.cur && dbg0.cur.w);
 ok('默认只放 12 个新词', dbg0.session.total <= 12 + 1, dbg0.session.total);
 
+console.log('— 2021–2025 数据接入 —');
+{
+  const d = win.__DBG(), b = d.byId;
+  ok('词表扩到 390 张以上（' + d.words + '）', d.words >= 390, d.words);
+  ok('punch 落在 2025 年', b.punch && JSON.stringify(b.punch.y) === '[2025]', JSON.stringify(b.punch && b.punch.y));
+  ok('punch 沿用笔记释义「吸引力；一拳」', b.punch && (b.punch.own || '').indexOf('吸引力') >= 0, b.punch && b.punch.own);
+  ok('at odds 在 2021 且标为负向态度词', b['at odds'] && b['at odds'].att === 'neg', JSON.stringify(b['at odds'] && b['at odds'].att));
+  ok('mandates 已归并到 mandate 并标「文中作」', b.mandate && (b.mandate.forms || []).indexOf('mandates') >= 0,
+    JSON.stringify(b.mandate && b.mandate.forms));
+  ok('daunting 保留为独立形容词（没被还原成 daunt）', !!b.daunting && !b.daunt, Object.keys(b).filter(k => k.indexOf('daunt') === 0).join(','));
+  ok('默认重点年份 = 2021–2025', JSON.stringify(win.__DBG().store.settings.focusYears) === '[2021,2022,2023,2024,2025]',
+    JSON.stringify(win.__DBG().store.settings.focusYears));
+}
+
 console.log('— 背诵页：翻面与评分 —');
 let view = () => nodes.get('#view').innerHTML;
 ok('正面不显示释义', view().indexOf('你的笔记') === -1);
@@ -208,6 +222,7 @@ const modal = () => nodes.get('#modal').innerHTML;
 T('打开加词面板', () => click('addword'));
 ok('面板里有输入框', modal().indexOf('addText') >= 0);
 ok('可以选年份 2020', modal().indexOf('2020 年') >= 0);
+T('年份选 2020', () => change('ayear', '2020', { value: '2020', type: 'select' }));
 fire('input', { target: { id: 'addText', value: 'sanctions\nubiquitous 无所不在的\nplausible\ncareless\nzzzqqqnotaword' } });
 T('点查词典', () => click('alookup'));
 ok('真的加载了词典分片（' + dictFiles.length + ' 个）', dictFiles.length > 0, dictFiles.join(','));

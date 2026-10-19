@@ -119,6 +119,35 @@ impose强加
     ok('年份开头的小标签仍算年份行', PL.year_header('2021 年真题') == 2021)
     ok('长句子不当年份行', PL.year_header('2020 年阅读真题里的长难句分析请结合上下文理解') is None)
 
+    print('— 表格格式（序号 Tab 英文 Tab 释义）+ 汇总节跳过 —')
+    s_tab = os.path.join(tmp, '2021_tab.txt')
+    with open(s_tab, 'w', encoding='utf-8') as f:
+        f.write(
+            "一、2021 年\n\n1. 原始词条\n\n序号\t英文\t你的中文释义\n\n"
+            "1\tjustify\t证明\n2\twell above\t远高于\n3\tat odds\t不相称的\n"
+            "4\tever\t一直；曾经（字迹待确认）\n\n"
+            "2. 大括号中的易混词组\n\n{preserve, observe}\n\n"
+            "二、2023 年\n\n1. 原始词条\n\n序号\t英文\t你的中文释义\n\n"
+            "1\tcater to\t迎合\n2\trust\t锈（原字迹有划改）\n\n"
+            "2. 词组单独保留\n\ncater to\n\n"
+            "三、2021—2023 年重复词核对\n\n单词\t出现年份\t去重后计数\n\njustify\t2021\t1\n\n"
+            "四、态度词单独统计\n\n年份\t英文\t你的中文释义\n\n2021\tat odds\t不相称的\n")
+    t = run([s_tab], os.path.join(tmp, 't.json'))
+    names = [w['w'] for w in t['words']]
+    ok('表格行解析出 6 条：' + ','.join(names), names == ['justify', 'well above', 'at odds', 'ever', 'cater to', 'rust'], names)
+    ok('序号没有被吃进单词', not any(any(c.isdigit() for c in n) for n in names), names)
+    ok('「重复词核对」整节被跳过（没有 justify 的第二条）', len([n for n in names if n == 'justify']) == 1, names)
+    ok('「态度词统计」表没被当成单词', 'at odds' in names and len(names) == 6, names)
+    ever = [w for w in t['words'] if w['w'] == 'ever'][0]
+    ok('「（字迹待确认）」被摘成备注', ever['note'] == '字迹待确认', ever['note'])
+    rust = [w for w in t['words'] if w['w'] == 'rust'][0]
+    ok('「（原字迹有划改）」被摘成备注', '划改' in rust['note'], rust['note'])
+    cater = [w for w in t['words'] if w['w'] == 'cater to'][0]
+    ok('单独成行的词组被标成 phrase', cater.get('phrase') is True, json.dumps(cater, ensure_ascii=False))
+    ok('年份分别为 2021 / 2023', sorted({y for w in t['words'] for y in w['y']}) == [2021, 2023])
+    ok('大括号易混组解析正确', t['groups'] == [{'y': 2021, 'items': ['preserve', 'observe']}],
+       json.dumps(t['groups'], ensure_ascii=False))
+
     print('\n通过 %d 项，失败 %d 项' % (PASS, FAIL))
     return 1 if FAIL else 0
 

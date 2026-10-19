@@ -1,0 +1,251 @@
+一、2021 年
+
+1. 原始词条
+
+序号	英文	你的中文释义
+
+1	justify	证明
+2	well above	远高于
+3	measure	测量；措施
+4	infrastructure	基础设施
+5	ever	一直；曾经（字迹待确认）
+6	ordinary	普通的
+7	compensate	补偿
+8	adequate	充足的
+9	strike	罢工
+10	revenue	收入
+11	bleak	不乐观的
+12	pace	速度
+13	rearing	抚养
+14	preserve	保持
+15	improve	改善
+16	deserve	值得
+17	reserve	预留（字迹待确认）
+18	observe	观察
+19	damn	该死的
+20	condemn	谴责
+21	convention	惯例
+22	convenient	方便的
+23	dental	牙齿的
+24	provoke	招致；引起
+25	concede	承认
+26	miserable	悲惨的
+27	contempt	蔑视
+28	contemplate	沉思
+29	favor	偏袒；偏爱
+30	partiality	偏袒；偏心
+31	incentive	激励；动机
+32	regulate	规范；调节
+33	intervene	干涉
+34	interview	面试
+35	explicit	明确的
+36	stance	立场
+37	at odds	不相称的
+
+2. 大括号中的易混词组
+
+{preserve, improve, deserve, reserve, observe}
+
+{convention, convenient}
+
+{contempt, contemplate}
+
+{favor, partiality}
+
+{intervene, interview}
+
+{damn, condemn}
+
+二、2022 年
+
+1. 原始词条
+
+序号	英文	你的中文释义
+
+1	provision	规定；条款
+2	constitution	宪法
+3	legislation	法律
+4	arbitrary	任意的
+5	dismiss	解雇
+6	hamper	阻碍
+7	contract	合同
+8	exempt	免除
+9	threshold	门槛
+10	retrieve	找回
+11	contend	主张；辩称
+12	albeit	尽管
+13	decay	衰退
+14	immune	免疫
+15	duplicate	复制
+16	ingredient	成分
+17	scrap	碎片
+18	diligent	勤奋的
+19	assess	评估
+20	access	获取；使用权
+21	postpone	推迟
+22	discontent	不满
+23	decent	体面的
+24	inject	注入
+25	prompt	提示
+26	assist	协助
+27	genuine	真实的
+28	collaborate	合作
+29	audience	观众
+30	innovation	创新
+31	impair	损害
+32	inhibit	抑制
+33	exhibit	展示
+
+2. 大括号中的易混词组
+
+{provision, constitution, legislation}
+
+{content, context, contend}
+
+{integrate, integrity}
+
+{inhibit, exhibit}
+
+{assess, access}
+
+三、2023 年
+
+1. 原始词条
+
+序号	英文	你的中文释义
+
+1	shift	变化
+2	indicate	表明
+3	panic	惊慌
+4	sufficient	足够的
+5	supervision	监督
+6	cater to	迎合
+7	sway	摇动
+8	pupil	学生
+9	fierce	激烈的
+10	speculate	推测；怀疑
+11	procedure	程序
+12	adequate	充足的
+13	inventory	库存
+14	mandates	命令
+15	insurance	保险
+16	retire	退休；退职
+17	convey	运载
+18	slack	松弛的；不活跃的
+19	merger	合并
+20	remove	去除
+21	consistency	一致性
+22	prestige	声望
+23	contain	包含
+24	pattern	模式
+25	instruct	指导
+26	foster	促进
+
+2. 词组单独保留
+
+cater to
+
+四、2024 年
+
+1. 原始词条
+
+序号	英文	你的中文释义
+
+1	rust	锈（原字迹有划改）
+2	thrift	节俭
+3	integral	不可或缺
+4	sophisticate	使复杂化
+5	scarce	稀有
+6	absurd	荒谬的
+7	absorb	吸收
+8	content	满足的；内容
+9	context	背景；上下文
+10	contend	主张；辩称
+11	obtain	得到
+12	integrate	整合；融入
+13	integrity	正直
+14	contribute to	导致
+15	observation	观察
+16	observe	观察
+17	alleviate	减轻；缓和
+18	audience	观众
+19	prompt	提示
+20	copyright	版权
+21	miracle	奇迹
+22	filter	过滤器
+23	transcend	超出
+
+2. 大括号中的易混词组
+
+{content, context, contend}
+
+{integrate, integrity}
+
+五、2025 年
+
+1. 原始词条
+
+序号	英文	你的中文释义
+
+1	punch	吸引力；一拳
+2	evident	明显的
+3	resilient	有适应力的
+4	vocabulary	词汇量
+5	sophisticate	复杂
+6	casual	随便的
+7	formidable	难对付的
+8	appetite	欲望
+9	mushrooming	迅速增长
+10	daunting	令人畏惧
+11	thrive	从容应对
+12	exploit	利用
+13	grave	严重的
+14	endeavour	努力
+15	fostering	培养（字迹待确认）
+16	pirates	海盗
+17	consensus	共识
+18	surpassed	超过
+19	protest	抗议
+20	in spite of	尽管
+21	overwhelm	压垮；打倒
+22	coordinate	协调；配合
+23	antique	古董
+24	format	格式
+25	obsolete	过时的
+26	integral	不可或缺
+27	retrieve	找回
+28	retire	退休
+29	migrating	迁徙；迁移
+
+2. 词组单独保留
+
+in spite of
+
+六、2021—2025 年重复词核对
+
+单词	出现年份	去重后计数
+
+adequate	2021、2023	1
+observe	2021、2024	1
+audience	2022、2024	1
+prompt	2022、2024	1
+retire	2022、2023、2025	1
+retrieve	2022、2025	1
+integral	2024、2025	1
+sophisticate	2024、2025	1
+
+七、态度词单独统计
+
+年份	英文	你的中文释义
+
+2021	condemn	谴责
+2021	contempt	蔑视
+2021	favor	偏袒；偏爱
+2021	partiality	偏袒；偏心
+2021	incentive	激励；动机
+2021	at odds	不相称的
+2022	discontent	不满
+2023	fierce	激烈的
+2025	formidable	难对付的
+2025	daunting	令人畏惧的
+2025	grave	严重的

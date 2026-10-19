@@ -38,11 +38,43 @@ def tidy_defs(defs, n=3):
     """去掉古义/冷僻义等噪音，最多保留 n 条"""
     out = []
     for d in defs:
+        for tag in ('<非正式>', '<正式>', '<口>', '<书>', '<喻>', '<贬>', '<褒>'):
+            d = d.replace(tag, '')
         parts = [p for p in d.split('；') if not any(k in p for k in NOISE)]
         s = '；'.join(p for p in parts if p.strip()).strip()
         if s:
             out.append(s)
     return out[:n]
+
+def like_inflection(form, base):
+    """form 是不是 base 的一个可预测变形（复数 / -ed / -ing）"""
+    if not base:
+        return False
+    if form in (base + 's', base + 'es', base + 'ed', base + 'd', base + 'ing'):
+        return True
+    if base.endswith('e') and form == base[:-1] + 'ing':
+        return True
+    if base.endswith('y') and form == base[:-1] + 'ies':
+        return True
+    if len(base) > 2 and base[-1] not in 'aeiou' and form in (base + base[-1] + 'ing', base + base[-1] + 'ed'):
+        return True
+    return False
+
+def strip_candidates(w):
+    out = []
+    if w.endswith('ies') and len(w) > 4:
+        out.append(w[:-3] + 'y')
+    if w.endswith('es') and len(w) > 3:
+        out.append(w[:-2])
+    if w.endswith('s') and not w.endswith('ss') and len(w) > 3:
+        out.append(w[:-1])
+    if w.endswith('ing') and len(w) > 5:
+        out.append(w[:-3])
+        out.append(w[:-3] + 'e')
+    if w.endswith('ed') and len(w) > 4:
+        out.append(w[:-2])
+        out.append(w[:-1])
+    return out
 
 def tidy_syno(syno, nw=4):
     out = []
@@ -63,7 +95,7 @@ def main():
 
     entries = []
     for item in lst['words']:
-        e = dict(item); e['kind'] = 'word'
+        e = dict(item); e['kind'] = 'phrase' if item.get('phrase') else 'word'
         entries.append(e)
     for item in lst['phrases']:
         e = dict(item); e['kind'] = 'phrase'
@@ -74,15 +106,29 @@ def main():
 
     # ---- 合并到规范词形 ----
     merged, order, lemma_map, forms = {}, [], {}, {}
+    raw_keys = {e['w'].lower() for e in entries}
     for e in entries:
         key = e['w'].lower()
         entry_cache = cache.get(key) or {}
         canon = key
         if e['kind'] == 'word' and not e.get('extra'):
             proto = (entry_cache.get('lemma') or '').strip().lower()
-            if proto and proto != key and ' ' not in proto and proto in BASE_FORMS:
+            # formidable/daunting/caring 这类已经形容词化的 -ing 词要单独成卡，
+            # 不能还原成动词（daunting → daunt 会丢掉「令人畏惧的」这个考点）
+            d0 = (entry_cache.get('defs') or [''])
+            is_adj = bool(d0) and str(d0[0]).strip().lower().startswith(('adj.', 'a.'))
+            if proto and proto != key and ' ' not in proto and (
+                    proto in BASE_FORMS or (like_inflection(key, proto) and not is_adj)):
                 canon = proto
                 lemma_map[key] = proto
+            elif proto and proto != key and ' ' not in proto:
+                canon = key          # 名词派生等（如 observation）：保留独立卡片
+            else:
+                for c in strip_candidates(key):
+                    if c in raw_keys and c != key:
+                        canon = c
+                        lemma_map[key] = c
+                        break
         e['canon'] = canon
         forms.setdefault(canon, [])
         if e['w'].lower() != canon and e['w'] not in forms[canon]:
@@ -136,7 +182,7 @@ def main():
                 w['ex'] = d['inline_ex'][:2]
         if forms.get(canon):
             w['forms'] = forms[canon]
-        if m['att']:
+        if m['att'] or canon in attmap:
             w['att'] = attmap.get(canon, 'neu')
         if canon in fixes:
             w['fixes'] = fixes[canon]
@@ -159,6 +205,15 @@ def main():
         items = [x for x in g['items'] if x in byid]
         if len(items) >= 2:
             groups.append({'y': g.get('y'), 'items': items, 'key': ','.join(g['items'])})
+    # 同一组词在不同年份重复出现时只保留一份
+    seen_g, uniq_g = set(), []
+    for g in groups:
+        sig = tuple(sorted(g['items']))
+        if sig in seen_g:
+            continue
+        seen_g.add(sig)
+        uniq_g.append(g)
+    groups = uniq_g
     for g in groups:
         g['note'] = gnotes.get(g['key'], g.get('note', ''))
 

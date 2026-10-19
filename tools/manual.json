@@ -11,6 +11,7 @@
   "mend one's ways": "你原来写作 mended it ways，正确固定搭配是 mend one's ways，意思是『改过自新』。",
   "process": "你笔记写的是『过程；审核』。process 作名词是『过程、流程』，作动词是『处理、加工』（process data 处理数据）。",
   "result": "这个词太基础，容易的话可以在词表里点『标记掌握』跳过，不用占背诵额度。"
+  ,"punch": "2025 年这篇里 punch 取『冲击力、吸引力』的意思（punchy = 有冲击力的）。你笔记里的『一拳』是字面义，两个都保留了：卡片以你的笔记为准，阅读里优先按『吸引力』理解。"
   ,"is due to": "这其实不是一个固定搭配，是 be due to 的用法：① 『由于、因为』（= because of，due to the rain）；② 『预定于』（The meeting is due to start at 9）。你笔记里标注『待核对』，这里给你补上。"
   ,"knock off": "knock off 常见义：① 下班（英式口语，knock off at five）；② 草草完成、快速做（knock off a report）；③ 减价、减去。你笔记写的是 knocked off，多半是句子里的过去式，结合原句判断。"
   ,"answer to": "answer to 的两个常见义：① 向……负责（answer to the manager for the results）；② 与……相符（answer to the description 与描述相符）。"
@@ -35,7 +36,15 @@
   "contemptuous": "neg",
   "hostile": "neg",
   "hostility": "neg",
-  "sensible": "neu"
+  "sensible": "neu",
+  "favor": "neg",
+  "partiality": "neg",
+  "at odds": "neg",
+  "incentive": "neu",
+  "fierce": "neu",
+  "formidable": "neg",
+  "daunting": "neg",
+  "grave": "neg"
  },
  "groups": {
   "contend,extend": "contend 争辩、主张、对付（contend with 应对）；extend 延伸、扩展、延长。两个词都有 -tend（伸），区别在前缀：con- 一起伸向 → 争；ex- 向外伸 → 延伸。顺便注意 content（内容/满足）也长得像。",

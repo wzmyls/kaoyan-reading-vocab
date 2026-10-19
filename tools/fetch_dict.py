@@ -194,9 +194,6 @@ def main():
             if t.lower() not in cache or (cache[t.lower()] or {}).get('error')]
     usable = len([t for t in targets if (cache.get(t.lower()) or {}).get('defs')])
     print('缓存可用: %d  本次需抓: %d  线程: %d' % (usable, len(todo), workers))
-    if not todo:
-        print('全部已缓存，无需抓取。')
-        return
     lock = threading.Lock()
     state = {'done': 0, 'ok': 0, 'fail': 0, 'tb': 0}
 
@@ -211,24 +208,40 @@ def main():
                     time.sleep(0.7 * (attempt + 1))
         return t, {'q': t, 'error': '%s: %s' % (type(err).__name__, err)}, err
 
-    with ThreadPoolExecutor(max_workers=workers) as ex:
-        for t, res, err in ex.map(work, todo):
-            with lock:
-                cache[t.lower()] = res
-                state['done'] += 1
-                if err is None:
-                    state['ok'] += 1
-                else:
-                    state['fail'] += 1
-                    if state['tb'] < 2:
-                        state['tb'] += 1
-                        print('  ! %s 出错：%s' % (t, err))
-                        if state['tb'] == 1:
-                            traceback.print_exception(type(err), err, err.__traceback__)
-                if state['done'] % 25 == 0 or state['done'] == len(todo):
-                    with open(CACHE, 'w', encoding='utf-8') as f:
-                        json.dump(cache, f, ensure_ascii=False)
-                    print('  进度 %d/%d  成功 %d 失败 %d' % (state['done'], len(todo), state['ok'], state['fail']), flush=True)
+    def batch(items):
+        state['done'] = 0
+        with ThreadPoolExecutor(max_workers=workers) as ex:
+            for t, res, err in ex.map(work, items):
+                with lock:
+                    cache[t.lower()] = res
+                    state['done'] += 1
+                    if err is None:
+                        state['ok'] += 1
+                    else:
+                        state['fail'] += 1
+                        if state['tb'] < 2:
+                            state['tb'] += 1
+                            print('  ! %s 出错：%s' % (t, err))
+                            if state['tb'] == 1:
+                                traceback.print_exception(type(err), err, err.__traceback__)
+                    if state['done'] % 25 == 0 or state['done'] == len(items):
+                        with open(CACHE, 'w', encoding='utf-8') as f:
+                            json.dump(cache, f, ensure_ascii=False)
+                        print('  进度 %d/%d  成功 %d 失败 %d' % (state['done'], len(items), state['ok'], state['fail']), flush=True)
+
+    if todo:
+        batch(todo)
+    # 第二轮：抓归并后的原形。否则卖(sold->sell)、抚养(rearing->rear) 这类卡片
+    # 会套用变形词的音标（例如 rear 显示成 /ˈrɪrɪŋ/）。
+    protos, ps = [], set()
+    for t in targets:
+        p = ((cache.get(t.lower()) or {}).get('lemma') or '').strip().lower()
+        if p and p != t.lower() and ' ' not in p and p not in cache and p not in ps:
+            ps.add(p)
+            protos.append(p)
+    if protos:
+        print('补抓原形 %d 个: %s' % (len(protos), ' '.join(protos)))
+        batch(protos)
     with open(CACHE, 'w', encoding='utf-8') as f:
         json.dump(cache, f, ensure_ascii=False)
     bad = [t for t in targets if (cache.get(t.lower()) or {}).get('error')]

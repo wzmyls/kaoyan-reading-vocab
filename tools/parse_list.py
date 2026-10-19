@@ -7,11 +7,39 @@ import json, re, sys, os, io
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 YEAR_HEAD = re.compile(r'^(?:[一二三四五六七八九十]+[、.．]\s*)?(20\d{2})\s*年?(.*)$')
-SEC_RE = re.compile(r'^([1-4])\.\s*(普通单词|词组|态度词|易混词组)\s*$')
-SKIP_RE = re.compile(r'^十[一二三四五六七八九]、')
+SEC_NUM = re.compile(r'^\d{1,2}[.．、]\s*(.+?)\s*$')
 GROUP_RE = re.compile(r'^\{\s*(.+?)\s*\}\s*$')
-NOTE_MARKERS = ('原笔记', '原记录', '待核对', '不确定', '原笔迹', '需要结合', '已更正',
-                '之前误识别', '暂保留', '疑似', '或相应语境')
+NOTE_MARKERS = ('原笔记', '原记录', '待核对', '待确认', '不确定', '原笔迹', '原字迹', '字迹',
+                '划改', '需要结合', '已更正', '之前误识别', '暂保留', '疑似', '或相应语境')
+SKIP_WORDS = ('汇总', '核对', '统计', '说明', '附录', '重复词')
+
+def is_skip_header(line):
+    """整节跳过的汇总章节，如『十一、所有词组汇总』『六、重复词核对』"""
+    s = line.strip()
+    if not re.match(r'^[一二三四五六七八九十]+[、.．]', s):
+        return False
+    return any(w in s for w in SKIP_WORDS)
+
+def section_bucket(line):
+    """小节标题 -> 归类：『1. 原始词条』『2. 大括号中的易混词组』『2. 词组单独保留』"""
+    m = SEC_NUM.match(line.strip())
+    if not m:
+        return None
+    t = m.group(1)
+    if len(t) > 24 or re.search(r'[A-Za-z]', t):
+        return None
+    if '易混' in t:
+        return '易混词组'
+    if '态度' in t:
+        return '态度词'
+    if '词组' in t or '搭配' in t or '短语' in t:
+        return '词组'
+    if '词条' in t or '单词' in t or '词汇' in t:
+        return '普通单词'
+    return None
+
+def norm_en(s):
+    return re.sub(r'\s+', ' ', s.strip()).replace('\u2019', "'")
 
 def year_header(line):
     """识别「一、2012 年」「2021年」「2021」这类年份分节行（避免误吃正文）"""
@@ -45,14 +73,29 @@ def split_note(cn):
 
 def split_entry(line):
     """把『单词中文释义』切成 (英文, 中文)"""
-    m = re.match(r'^([^\u4e00-\u9fff]*?)([\u4e00-\u9fff].*)$', line)
+    s = line.strip()
+    # 表格行：「序号<TAB>英文<TAB>释义」或「英文<2+空格>释义」
+    if '\t' in s or re.search(r'[^\s] {2,}[^\s]', s):
+        cells = [c.strip() for c in re.split(r'\t+| {2,}', s) if c.strip()]
+        en = cn = None
+        for c in cells:
+            if en is None:
+                if re.search(r'[A-Za-z]', c) and not re.search(r'[\u4e00-\u9fff]', c):
+                    en = c
+                continue
+            if re.search(r'[\u4e00-\u9fff]', c):
+                cn = c
+                break
+        if en and cn:
+            return norm_en(en), cn
+    m = re.match(r'^([^\u4e00-\u9fff]*?)([\u4e00-\u9fff].*)$', s)
     if not m:
         return None
     en = m.group(1).strip()
     cn = m.group(2).strip()
     if not re.search(r'[A-Za-z]', en):
         return None
-    en = re.sub(r'\s+', ' ', en).replace('\u2019', "'")
+    en = norm_en(en)
     return en, cn
 
 def parse_args(argv):
@@ -85,17 +128,18 @@ def main():
         for ln in lines:
             if not ln:
                 continue
-            if SKIP_RE.match(ln):
+            if is_skip_header(ln):
                 skip = True
-            if skip:
                 continue
             y = year_header(ln)
             if y:
-                year, bucket = y, '普通单词'
+                year, bucket, skip = y, '普通单词', False
                 continue
-            m = SEC_RE.match(ln)
-            if m:
-                bucket = m.group(2)
+            if skip:
+                continue
+            b = section_bucket(ln)
+            if b:
+                bucket = b
                 continue
             if '你特别指出遗漏' in ln:
                 year, bucket = None, '遗漏补充'
@@ -110,12 +154,19 @@ def main():
                               'y': [year] if year else [], 'att': bucket == '态度词'})
             elif bucket == '词组':
                 got = split_entry(ln)
-                if not got:
+                if got:
+                    en, cn = got
+                    cn, note = split_note(cn)
+                    phrases.append({'w': en, 'own': cn, 'note': note,
+                                    'y': [year] if year else []})
                     continue
-                en, cn = got
-                cn, note = split_note(cn)
-                phrases.append({'w': en, 'own': cn, 'note': note,
-                                'y': [year] if year else []})
+                # 词组单独成行（没写释义）：若前面已作为词条收过，改归到词组
+                name = norm_en(ln)
+                if re.match(r"^[A-Za-z][A-Za-z'\- ]*$", name):
+                    for w in words:
+                        if w['w'].lower() == name.lower() and (not year or year in w['y']):
+                            w['phrase'] = True
+                            break
             elif bucket == '易混词组':
                 g = GROUP_RE.match(ln)
                 if g:
