@@ -30,9 +30,10 @@ function makeEl(sel) {
   };
 }
 const nodes = new Map();
-const tabs = ['review', 'drill', 'list', 'stats'].map(v => {
+const tabs = ['review', 'drill', 'trouble', 'list', 'stats'].map(v => {
   const e = makeEl('#tab-' + v); e.dataset.view = v; return e;
 });
+const tab = n => tabs.find(t => t.dataset.view === n);
 const handlers = {};
 const document = {
   querySelector(s) { if (!nodes.has(s)) nodes.set(s, makeEl(s)); return nodes.get(s); },
@@ -178,7 +179,7 @@ ok('答错不翻面', view().indexOf('你的笔记') === -1);
 T('恢复看英文模式', () => change('set', 'mode', { value: 'en2cn', type: 'select' }));
 
 console.log('— 辨析页 —');
-T('切到辨析页', () => tabs[1]._on.click());
+  T('切到辨析页', () => tab('drill')._on.click());
 ok('渲染出选项', view().indexOf('gpick') >= 0);
 const m = view().match(/data-act="gpick" data-val="([^"]+)"/);
 ok('能拿到选项', !!m);
@@ -186,12 +187,12 @@ T('点一个选项', () => click('gpick', m ? m[1] : 'x'));
 ok('给出对错反馈', view().indexOf('答对') >= 0 || view().indexOf('答错') >= 0);
 ok('显示全组对照', view().indexOf('cmp') >= 0);
 ok('辨析统计被记录', Object.keys(win.__DBG().store.groups).length > 0);
-T('换一题 / 全部对照', () => { click('gnext'); tabs[1]._on.click(); click('gmode', 'list'); });
+  T('换一题 / 全部对照', () => { click('gnext'); tab('drill')._on.click(); click('gmode', 'list'); });
 ok('全部对照渲染出多组', (view().match(/class="row"/g) || []).length > 20, (view().match(/class="row"/g) || []).length);
 T('切回抽题', () => click('gmode', 'drill'));
 
 console.log('— 词表页 —');
-T('切到词表页', () => tabs[2]._on.click());
+  T('切到词表页', () => tab('list')._on.click());
 ok('渲染出表格行', view().indexOf('listRows') >= 0);
 ok('有搜索框', view().indexOf('id="listQ"') >= 0);
 T('切到「曾答错」筛选', () => click('listweak'));
@@ -203,7 +204,7 @@ T('重置卡片', () => click('reset', firstWord));
 ok('重置后卡片被删除', !win.__DBG().store.cards[firstWord]);
 
 console.log('— 统计页 —');
-T('切到统计页', () => tabs[3]._on.click());
+  T('切到统计页', () => tab('stats')._on.click());
 ok('显示倒计时', view().indexOf('距考试还有') >= 0);
 ok('显示阶段安排', view().indexOf('阶段一') >= 0);
 ok('显示未来 14 天预测', (view().match(/class="col"/g) || []).length === 14);
@@ -249,7 +250,7 @@ ok('保存后跳到词表页', view().indexOf('listRows') >= 0);
 ok('词表里能看到自建词', view().indexOf('自建') >= 0 && view().indexOf('ubiquitous') >= 0);
 
 console.log('— 自定义学习计划 —');
-T('切到统计页', () => tabs[3]._on.click());
+  T('切到统计页', () => tab('stats')._on.click());
 ok('出现计划区', view().indexOf('自定义学习计划') >= 0);
 T('设目标日期', () => change('plan', 'target', { value: '2026-12-13', type: 'date' }));
 T('设考前预留 10 天', () => change('plan', 'reserve', { value: '10', type: 'number' }));
@@ -262,12 +263,12 @@ T('应用计划', () => click('planapply'));
 ok('每天新词数被改成计划值', win.__DBG().store.settings.newPerDay === parseInt(pm[1], 10),
   win.__DBG().store.settings.newPerDay + ' vs ' + pm[1]);
 ok('考试日期同步为 2026-12-13', win.__DBG().store.settings.examDate === '2026-12-13', win.__DBG().store.settings.examDate);
-T('回到背诵页', () => tabs[0]._on.click());
+  T('回到背诵页', () => tab('review')._on.click());
 ok('显示今日计划进度条', view().indexOf('今日计划') >= 0);
 
 console.log('— 进度持久化 —');
 console.log('— 重点年份加权 —');
-T('切到统计页', () => tabs[3]._on.click());
+  T('切到统计页', () => tab('stats')._on.click());
 ok('默认已带重点年份', (win.__DBG().store.settings.focusYears || []).length > 0,
   JSON.stringify(win.__DBG().store.settings.focusYears));
 ok('默认权重 0.6', win.__DBG().store.settings.focusWeight === 0.6, String(win.__DBG().store.settings.focusWeight));
@@ -286,7 +287,7 @@ ok('权重已生效', win.__DBG().store.settings.focusWeight === 0.5, String(win
   ok('同样的评分，重点词间隔 ' + fi + ' 天 明显短于 普通词 ' + ni + ' 天', fi < ni);
 }
 T('切回背诵并选「重点年份」范围', () => {
-  tabs[0]._on.click();
+  tab('review')._on.click();
   change('deck', 'focus', { value: 'focus', type: 'select' });
 });
 T('补一轮新词', () => click('new10'));
@@ -305,7 +306,7 @@ ok('页面显示重点权重', view().indexOf('间隔×0.5') >= 0);
 
 console.log('— 进度持久化 —');
 console.log('— 掌握度折线图 —');
-T('切到统计页', () => tabs[3]._on.click());
+  T('切到统计页', () => tab('stats')._on.click());
 ok('渲染出 SVG', view().indexOf('<svg') >= 0 && view().indexOf('class="chart"') >= 0);
 ok('有折线路径', view().indexOf('class="line') >= 0);
 ok('有学过的占比区域', view().indexOf('class="area"') >= 0);
@@ -335,6 +336,40 @@ ok('顶栏/统计里的掌握度与快照一致', (function () {
   const shown = parseInt((view().match(/font-size:20px">(\d+)%/) || [])[1], 10);
   return Math.abs(shown / 100 - hist[k][0]) <= 0.01;
 })(), (view().match(/font-size:20px">(\d+)%/) || [])[0]);
+
+console.log('— 常错词 —');
+{
+  const S_ = sandbox.window.SRS;
+  tab('review')._on.click();
+  if (!win.__DBG().cur) click('new10');
+  const curId = win.__DBG().cur.id;
+  click('reveal');
+  click('grade', '0');
+  const today = S_.todayKey(Date.now());
+  const todays = win.__DBG().store.trouble[today] || {};
+  ok('点「忘记」会记进当天计数', !!todays[curId] && todays[curId][0] >= 1, JSON.stringify(todays[curId]));
+  todays[curId] = [3, 1];
+  tab('trouble')._on.click();
+  ok('常错页收进了这个词', view().indexOf(curId) >= 0, curId);
+  ok('显示忘记次数 3', view().indexOf('3</b> 次') >= 0, (view().match(/\d+<\/b> 次/) || [])[0]);
+  ok('显示模糊次数', view().indexOf('模糊 1 次') >= 0);
+  ok('有「开始背这 N 个词」按钮', view().indexOf('开始背这') >= 0);
+  ok('顶栏出现常错计数', nodes.get('#chips').innerHTML.indexOf('常错') >= 0);
+  click('troubleStart');
+  const d = win.__DBG();
+  ok('启动了常错词范围', d.session && d.session.deck === 'trouble', d.session && d.session.deck);
+  const tids = (d.cur ? [d.cur.id] : []).concat(d.session.queue);
+  ok('会话里只装常错词', tids.length > 0 && tids.every(function (id) {
+    const r = todays[id];
+    return r && r[0] >= (win.__DBG().store.settings.troubleThreshold || 3);
+  }), tids.slice(0, 6).join(','));
+  ok('跳回背诵页开始背', view().indexOf('今日计划') >= 0);
+  win.__DBG().store.settings.troubleThreshold = 4;
+  tab('trouble')._on.click();
+  ok('阈值提到 4 后，3 次的词不再算常错', view().indexOf(curId) === -1, curId);
+  win.__DBG().store.settings.troubleThreshold = 3;
+  tab('review')._on.click();
+}
 
 console.log('— 进度持久化 —');
 flushTimers();

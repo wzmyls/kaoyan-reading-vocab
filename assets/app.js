@@ -28,7 +28,7 @@
   /* ---------- 存储 ---------- */
   var store, lsOK = true, saveTimer = null;
   function defStore() {
-    return { v: 1, settings: {}, cards: {}, log: {}, groups: {}, custom: [], hist: {}, created: Date.now() };
+    return { v: 1, settings: {}, cards: {}, log: {}, groups: {}, custom: [], hist: {}, trouble: {}, created: Date.now() };
   }
   function load() {
     var raw = null;
@@ -40,9 +40,11 @@
     store.groups = store.groups || {};
     store.custom = store.custom || [];
     store.hist = store.hist || {};
+    store.trouble = store.trouble || {};
     if (!store.settings.examDate) store.settings.examDate = isoDate(Date.now() + 60 * 86400000);
     if (!store.settings.focusYears) store.settings.focusYears = (DATA.focusYears || []).slice();
     if (store.settings.focusWeight == null) store.settings.focusWeight = 0.6;
+    if (store.settings.troubleThreshold == null) store.settings.troubleThreshold = 3;
   }
   function save() {
     if (!lsOK) return;
@@ -210,6 +212,12 @@
     if (k === 'att') return WORDS.filter(function (w) { return w.att; });
     if (k === 'phrase') return WORDS.filter(function (w) { return w.kind === 'phrase'; });
     if (k === 'focus') return WORDS.filter(function (w) { return S.isFocus(w, store.settings); });
+    if (k === 'trouble') {
+      return S.troubleWords(WORDS, store, {
+        threshold: store.settings.troubleThreshold || 3,
+        days: ui.troubleDays || 1
+      }).map(function (x) { return x.w; });
+    }
     if (k === 'weak') {
       return WORDS.filter(function (w) {
         var c = store.cards[w.id];
@@ -220,6 +228,7 @@
   }
   var DECKS = [
     { k: 'all', name: '全部单词' },
+    { k: 'trouble', name: '常错词' },
     { k: 'focus', name: '重点年份' },
     { k: 'att', name: '态度词' },
     { k: 'phrase', name: '固定搭配' },
@@ -229,14 +238,22 @@
   var ui = {
     view: 'review', deck: 'all', revealed: false,
     spell: '', spellOk: null, spellDone: false,
-    listQ: '', listFilter: 'all', groupMode: 'drill', chartDays: 30
+    listQ: '', listFilter: 'all', groupMode: 'drill', chartDays: 30, troubleDays: 1
   };
   var session = null, cur = null, q = null;
   /* ---------- 会话 ---------- */
-  function startSession(k, extraNew) {
+  function startSession(k, extraNew, forceAll) {
     var list = deckWords(k);
     var built = S.buildQueue(list, store, Date.now());
     var ids = built.ids.slice();
+    if (forceAll) {
+      /* 常错组是「现在就要背」的：无视到期时间与每日新词额度，
+         否则刚点过忘记的词（学习态、1 分钟后到期）会被排除，组就空了 */
+      ids = list.filter(function (w) {
+        var c = store.cards[w.id];
+        return !(c && c.suspended);
+      }).map(function (w) { return w.id; });
+    }
     if (extraNew) {
       var taken = {};
       ids.forEach(function (id) { taken[id] = 1; });
@@ -249,6 +266,9 @@
     }
     session = { deck: k, queue: ids, total: ids.length, done: 0, grades: [0, 0, 0, 0], built: built };
     takeNext();
+  }
+  function beginDeck(k, extraNew) {
+    startSession(k, extraNew, k === 'trouble');
   }
   function takeNext() {
     var id = session && session.queue.length ? session.queue.shift() : null;
@@ -270,6 +290,7 @@
     /* 重点年份的词间隔按权重缩短 —— 复习得更勤 */
     store.cards[id] = S.schedule(before, g, now, S.focusWeight(cur, store.settings));
     bumpLog(now, isNew, g);
+    bumpTrouble(id, now, g);
     session.done++;
     session.grades[g]++;
     if (g <= 1) {
@@ -279,6 +300,22 @@
     save();
     takeNext();
     render();
+  }
+  /* ---------- 常错词计数 ---------- */
+  /* 常错词计数：每天每个词记 [忘记次数, 模糊次数]，只保留最近 14 天 */
+  function bumpTrouble(id, now, g) {
+    if (g !== 0 && g !== 1) return;
+    var k = S.todayKey(now);
+    store.trouble = store.trouble || {};
+    var day = store.trouble[k] || (store.trouble[k] = {});
+    var rec = day[id] || (day[id] = [0, 0]);
+    rec[g === 0 ? 0 : 1]++;
+    var keep = {};
+    for (var i = 0; i < 14; i++) {
+      var kk = S.todayKey(now - i * 86400000);
+      if (store.trouble[kk]) keep[kk] = store.trouble[kk];
+    }
+    store.trouble = keep;
   }
   /* ---------- 例句 ---------- */
   function exampleOf(w) {
@@ -403,7 +440,7 @@
     return h.join('');
   }
   function reviewHtml() {
-    if (!session) startSession(ui.deck);
+    if (!session) beginDeck(ui.deck);
     var h = [];
     h.push('<div class="tools">');
     h.push('<select data-act="deck">' + DECKS.map(function (d) {
@@ -580,6 +617,52 @@
     render();
   }
   /* ---------- 词表 ---------- */
+  /* ---------- 常错词 ---------- */
+  function troubleHtml() {
+    var now = Date.now();
+    var thr = store.settings.troubleThreshold || 3;
+    var days = ui.troubleDays || 1;
+    var list = S.troubleWords(WORDS, store, { threshold: thr, days: days, now: now });
+    var h = [];
+    h.push('<div class="tools" style="margin-top:18px">');
+    h.push('<span class="chip hot">常错词 <b>' + list.length + '</b> 个</span>');
+    h.push('<div class="tabs" style="margin:0">' + [[1, '今天'], [7, '近 7 天']].map(function (o) {
+      return '<button data-act="troubleDays" data-val="' + o[0] + '"' + (days === o[0] ? ' class="on"' : '') + '>' + o[1] + '</button>';
+    }).join('') + '</div>');
+    h.push('<span style="flex:1"></span>');
+    h.push('<label>连续忘记 <select data-act="troubleThr">' + [2, 3, 4, 5].map(function (n) {
+      return '<option value="' + n + '"' + (thr === n ? ' selected' : '') + '>' + n + '</option>';
+    }).join('') + '</select> 次算常错</label>');
+    h.push('</div>');
+    if (!list.length) {
+      h.push('<div class="panel pad" style="margin-top:6px">');
+      h.push('<div style="font-size:17px;font-weight:650">' + (days === 1 ? '今天还没有常错词' : '近 7 天还没有常错词') + '</div>');
+      h.push('<div class="meta" style="margin-top:8px">同一个词当天点满 ' + thr +
+        ' 次「忘记」，它就会自动进这里 —— 可以把当天的硬骨头集中再背一遍。</div>');
+      var week = days === 1 ? S.troubleWords(WORDS, store, { threshold: thr, days: 7, now: now }) : [];
+      if (week.length) {
+        h.push('<div class="meta" style="margin-top:8px">近 7 天累计有 <b>' + week.length + '</b> 个词达标，切到「近 7 天」能看到。</div>');
+      }
+      h.push('</div>');
+      return h.join('');
+    }
+    h.push('<div class="tools"><button class="btn primary" data-act="troubleStart">开始背这 ' + list.length + ' 个词</button>');
+    h.push('<span class="meta">按忘记次数从多到少排；背的时候正常评分，次数会继续累加。</span></div>');
+    h.push('<div class="panel" style="overflow:hidden"><table><thead><tr><th>单词</th><th>你的笔记</th><th>忘记</th><th>状态</th></tr></thead><tbody>');
+    list.forEach(function (x) {
+      var w = x.w, c = store.cards[x.id];
+      var st = cardStateText(c);
+      h.push('<tr><td class="w">' + esc(w.w) + (w.ph ? '<div class="meta">/' + esc(w.ph) + '/</div>' : '') + '</td>');
+      h.push('<td>' + esc(w.own || '—') + '<div class="meta">' + ((w.y || []).join('/') || '补充') +
+        (w.att ? ' · 态度词' : '') + (w.root ? ' · ' + esc(w.root) : '') + '</div></td>');
+      h.push('<td><b style="color:var(--bad);font-size:16px">' + x.forgot + '</b> 次' +
+        (x.vague ? '<div class="meta">模糊 ' + x.vague + ' 次</div>' : '') +
+        (x.days.length > 1 ? '<div class="meta">跨 ' + x.days.length + ' 天</div>' : '') + '</td>');
+      h.push('<td><span class="' + st[1] + '">' + st[0] + '</span></td></tr>');
+    });
+    h.push('</tbody></table></div>');
+    return h.join('');
+  }
   function cardStateText(c) {
     if (!c || c.state === 'new') return ['未学', ''];
     if (c.suspended) return ['已暂停', ''];
@@ -1043,6 +1126,10 @@
     var d = store.log[S.todayKey(now)] || {};
     var h = [];
     h.push('<span class="chip' + (sum.due ? ' hot' : '') + '">待复习 <b>' + sum.due + '</b></span>');
+    var troubleN = S.troubleWords(WORDS, store, {
+      threshold: store.settings.troubleThreshold || 3, days: 1, now: now
+    }).length;
+    if (troubleN) h.push('<span class="chip hot">常错 <b>' + troubleN + '</b></span>');
     h.push('<span class="chip">今日新词 <b>' + (d.new || 0) + '</b>/' + store.settings.newPerDay + '</span>');
     h.push('<span class="chip ok">已掌握 <b>' + sum.mastered + '</b>/' + sum.total + '</span>');
     h.push('<span class="chip">连续 <b>' + S.streak(store, now) + '</b> 天</span>');
@@ -1060,6 +1147,7 @@
     var v = $('#view');
     if (ui.view === 'review') v.innerHTML = reviewHtml();
     else if (ui.view === 'drill') v.innerHTML = drillHtml();
+    else if (ui.view === 'trouble') v.innerHTML = troubleHtml();
     else if (ui.view === 'list') { v.innerHTML = listHtml(); }
     else v.innerHTML = statsHtml();
     $('#modal').innerHTML = modalHtml();
@@ -1096,8 +1184,8 @@
     var act = t.dataset.act, val = t.dataset.val;
     if (act === 'grade') grade(parseInt(val, 10));
     else if (act === 'reveal') reveal();
-    else if (act === 'restart') { startSession(ui.deck); render(); }
-    else if (act === 'new10') { startSession(ui.deck, 10); render(); }
+    else if (act === 'restart') { beginDeck(ui.deck); render(); }
+    else if (act === 'new10') { beginDeck(ui.deck, 10); render(); }
     else if (act === 'gmode') { ui.groupMode = val; render(); }
     else if (act === 'listweak') {
       ui.view = 'list'; ui.listFilter = 'weak';
@@ -1105,6 +1193,15 @@
       render();
     }
     else if (act === 'chartdays') { ui.chartDays = parseInt(val, 10) || 30; render(); }
+    else if (act === 'troubleDays') { ui.troubleDays = parseInt(val, 10) || 1; render(); }
+    else if (act === 'troubleStart') {
+      ui.deck = 'trouble'; ui.view = 'review';
+      document.querySelectorAll('#tabs button').forEach(function (x) {
+        x.classList.toggle('on', x.dataset.view === 'review');
+      });
+      beginDeck('trouble');
+      render();
+    }
     else if (act === 'gnext') { ui.groupMode = 'drill'; newQuestion(); render(); }
     else if (act === 'gpick') pickGroup(val);
     else if (act === 'toggle-master') {
@@ -1137,7 +1234,7 @@
       if (r.tight && !confirm('每天 ' + r.perDay + ' 个新词偏多，确定要这样设置吗？')) return;
       store.settings.newPerDay = r.perDay;
       store.settings.examDate = r.targetDate;
-      save(); startSession(ui.deck); render();
+      save(); beginDeck(ui.deck); render();
     } else if (act === 'export') {
       var blob = new Blob([JSON.stringify(store)], { type: 'application/json' });
       var a = document.createElement('a');
@@ -1147,7 +1244,7 @@
     } else if (act === 'import') { $('#impFile').click(); }
     else if (act === 'wipe') {
       if (confirm('确定清空所有背诵进度吗？此操作不可撤销（建议先导出备份）。')) {
-        store = defStore(); prepare(); startSession(ui.deck); render();
+        store = defStore(); prepare(); beginDeck(ui.deck); render();
       }
     }
   });
@@ -1155,9 +1252,13 @@
     var t = e.target.closest('[data-act]');
     if (!t) return;
     var act = t.dataset.act, val = t.dataset.val;
-    if (act === 'deck') { ui.deck = t.value; startSession(ui.deck); render(); }
+    if (act === 'deck') { ui.deck = t.value; beginDeck(ui.deck); render(); }
     else if (act === 'lfilter') { ui.listFilter = t.value; $('#listRows').innerHTML = listRows(); render(); }
     else if (act === 'ayear') { addUI.year = parseInt(t.value, 10) || 0; render(); }
+    else if (act === 'troubleThr') {
+      store.settings.troubleThreshold = parseInt(t.value, 10) || 3;
+      save(); render();
+    }
     else if (act === 'fset') {
       if (val === 'focusYears') {
         store.settings.focusYears = String(t.value).split(/[,，;；\s]+/)
@@ -1188,7 +1289,7 @@
           if (!o.cards) throw new Error('文件格式不对');
           store = Object.assign(defStore(), o);
           store.settings = Object.assign({}, S.DEFAULT_SETTINGS, store.settings || {});
-          save(); prepare(); startSession(ui.deck); render();
+          save(); prepare(); beginDeck(ui.deck); render();
           alert('导入成功。');
         } catch (err) { alert('导入失败：' + err.message); }
       };

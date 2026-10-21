@@ -182,5 +182,29 @@ ok('回填：学到之后就算上', Math.abs(S.masteryScore(w1, mk(10), T0, T0)
 const s3 = { settings: {}, log: {}, cards: { x: { state: 'review', step: 0, ease: 2.5, ivl: 21, due: T0, reps: 5, lapses: 0, last: T0 - DAY, suspended: true } } };
 ok('暂停的词不计入分母', S.masteryScore([{ w: 'x', y: [] }, { w: 'y', y: [] }], s3, T0).total === 1);
 
+console.log('— 常错词 —');
+const tw = [{ w: 'a', y: [2023] }, { w: 'b', y: [2023] }, { w: 'c', y: [2023] }];
+const ts = { settings: {}, cards: {}, log: {}, trouble: {} };
+const tk0 = S.todayKey(T0), tk1 = S.todayKey(T0 - DAY);
+ts.trouble[tk0] = { a: [3, 0], b: [2, 4], c: [0, 5] };
+let tl = S.troubleWords(tw, ts, { threshold: 3, days: 1, now: T0 });
+ok('只有点满 3 次「忘记」的词进常错', tl.length === 1 && tl[0].id === 'a', JSON.stringify(tl.map(x => x.id)));
+ok('模糊次数单独统计（不算进阈值）', tl[0].vague === 0 && tl[0].forgot === 3, JSON.stringify(tl[0]));
+ok('2 次忘记不进常错', !tl.find(x => x.id === 'b'));
+
+ts.trouble[tk0].b = [3, 1];
+tl = S.troubleWords(tw, ts, { threshold: 3, days: 1, now: T0 });
+ok('多个词都收进来', tl.length === 2, JSON.stringify(tl.map(x => x.id)));
+ok('每个词的模糊次数也带出来', tl.find(x => x.id === 'b').vague === 1, JSON.stringify(tl.map(x => [x.id, x.vague])));
+
+ts.trouble[tk1] = { c: [4, 0] };
+ok('「今天」窗口不含昨天', S.troubleWords(tw, ts, { threshold: 3, days: 1, now: T0 }).length === 2);
+tl = S.troubleWords(tw, ts, { threshold: 3, days: 7, now: T0 });
+ok('「近 7 天」窗口包含昨天', tl.length === 3, JSON.stringify(tl.map(x => x.id)));
+ok('按单日最多次数排序（4 次排第一）', tl[0].id === 'c', JSON.stringify(tl.map(x => [x.id, x.worst])));
+ok('阈值调到 4 只剩 c', S.troubleWords(tw, ts, { threshold: 4, days: 7, now: T0 }).length === 1);
+ok('阈值调到 2 三个都算', S.troubleWords(tw, ts, { threshold: 2, days: 7, now: T0 }).length === 3);
+ok('没有记录的词不会进来', S.troubleWords([{ w: 'z', y: [] }], ts, { threshold: 3, days: 7, now: T0 }).length === 0);
+
 console.log('\n通过 ' + pass + ' 项，失败 ' + fail + ' 项');
 process.exit(fail ? 1 : 0);

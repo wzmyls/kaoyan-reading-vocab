@@ -54,6 +54,40 @@
     };
   }
 
+  /* 常错词：某一天「忘记」次数达到阈值的词
+     opts: {threshold=3, days=1, now}
+     返回 [{w, id, forgot, vague, worst, days:[{date,count}]}]，按最惨的排前面 */
+  function troubleWords(words, store, opts) {
+    opts = opts || {};
+    var now = opts.now == null ? Date.now() : opts.now;
+    var thr = opts.threshold == null ? 3 : opts.threshold;
+    var span = opts.days == null ? 1 : Math.max(1, opts.days);
+    var tl = store.trouble || {};
+    var keys = [];
+    for (var i = 0; i < span; i++) keys.push(todayKey(now - i * DAY));
+    var res = [];
+    for (var j = 0; j < words.length; j++) {
+      var w = words[j], id = w.w;
+      var forgot = 0, vague = 0, worst = 0, hits = [];
+      for (var k = 0; k < keys.length; k++) {
+        var rec = (tl[keys[k]] || {})[id];
+        if (!rec) continue;
+        var f = rec[0] || 0, v = rec[1] || 0;
+        forgot += f;
+        vague += v;
+        if (f > worst) worst = f;
+        if (f >= thr) hits.push({ date: keys[k], count: f });
+      }
+      if (hits.length) {
+        res.push({ w: w, id: id, forgot: forgot, vague: vague, worst: worst, days: hits });
+      }
+    }
+    res.sort(function (a, b) {
+      return (b.worst - a.worst) || (b.forgot - a.forgot) || (a.id < b.id ? -1 : 1);
+    });
+    return res;
+  }
+
   var GRADE_LABEL = ['忘记', '模糊', '认识', '太简单'];
 
   function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
@@ -400,6 +434,7 @@
     memoryStrength: memoryStrength, masteryScore: masteryScore,
     schedule: schedule, scheduleRaw: scheduleRaw,
     focusWeight: focusWeight, isFocus: isFocus,
+    troubleWords: troubleWords,
     previewIntervals: previewIntervals, humanizeDelta: humanizeDelta,
     buildQueue: buildQueue, summarize: summarize, streak: streak, forecast: forecast,
     makePlan: makePlan
