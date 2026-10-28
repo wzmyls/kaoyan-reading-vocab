@@ -368,6 +368,24 @@ console.log('— 常错词 —');
   tab('trouble')._on.click();
   ok('阈值提到 4 后，3 次的词不再算常错', view().indexOf(curId) === -1, curId);
   win.__DBG().store.settings.troubleThreshold = 3;
+  const st0 = win.__DBG().store;
+  st0.troubleAll = st0.troubleAll || {};
+  st0.troubleAll[curId] = [7, 2, 3, 4, Date.now() - 86400000];
+  click('troubleDays', '0');
+  ok('「全部」视图有历史累计列', view().indexOf('累计忘记') >= 0);
+  ok('显示累计忘记 7 次', view().indexOf('>7</b> 次') >= 0, (view().match(/>\d+<\/b> 次/g) || []).join(','));
+  ok('显示出现天数', view().indexOf('3 天') >= 0, view().slice(0, 0));
+  ok('显示单日最多 4 次', view().indexOf('最多一天 4 次') >= 0);
+  ok('显示最近一次', view().indexOf('最近一次') >= 0);
+  ok('全部视图也能整组背', view().indexOf('开始背这') >= 0);
+  click('troubleStart');
+  ok('全部视图启动的会话包含该词', (function () {
+    const dd = win.__DBG();
+    return (dd.cur && dd.cur.id === curId) || (dd.session && dd.session.queue.indexOf(curId) >= 0);
+  })(), curId);
+  tab('trouble')._on.click();
+  click('troubleDays', '1');
+  ok('切回「今天」仍然正常', view().indexOf('开始背这') >= 0 || view().indexOf('还没有常错词') >= 0);
   tab('review')._on.click();
 }
 

@@ -206,5 +206,42 @@ ok('阈值调到 4 只剩 c', S.troubleWords(tw, ts, { threshold: 4, days: 7, no
 ok('阈值调到 2 三个都算', S.troubleWords(tw, ts, { threshold: 2, days: 7, now: T0 }).length === 3);
 ok('没有记录的词不会进来', S.troubleWords([{ w: 'z', y: [] }], ts, { threshold: 3, days: 7, now: T0 }).length === 0);
 
+console.log('— 常错词：历史全部 —');
+const ts2 = { settings: {}, cards: {}, log: {}, trouble: {}, troubleAll: {} };
+ts2.troubleAll.a = [9, 2, 4, 4, T0 - DAY];        // 累计忘 9 次，跨 4 天，单日最多 4
+ts2.troubleAll.b = [3, 0, 1, 3, T0 - 5 * DAY];    // 3 次，集中在一天
+ts2.troubleAll.c = [8, 0, 5, 2, T0 - 9 * DAY];    // 累计 8 次，但单日最多只有 2 → 不达标
+let ta = S.troubleWords(tw, ts2, { threshold: 3, days: 0, now: T0 });
+ok('历史全部只收「曾经某天达标」的词：' + ta.map(x => x.id).join(','), ta.length === 2 && ta[0].id === 'a' && ta[1].id === 'b',
+  JSON.stringify(ta.map(x => x.id)));
+ok('累计忘记次数带出来了（9 / 3）', ta[0].forgot === 9 && ta[1].forgot === 3, JSON.stringify(ta.map(x => x.forgot)));
+ok('按累计忘记次数排序，9 次的排第一', ta[0].id === 'a');
+ok('出现天数与单日最多都带出来', ta[0].dayCount === 4 && ta[0].worst === 4, JSON.stringify([ta[0].dayCount, ta[0].worst]));
+ok('最近一次时间带出来', ta[0].last === T0 - DAY, String(ta[0].last));
+ok('累计 8 次但单日没达标的 c 不收', !ta.find(x => x.id === 'c'));
+ok('阈值调到 4 只剩 a', S.troubleWords(tw, ts2, { threshold: 4, days: 0, now: T0 }).length === 1);
+ok('「全部」不受逐日记录影响（trouble 为空也能算）', Object.keys(ts2.trouble).length === 0 && ta.length === 2);
+ok('days:7 仍走逐日逻辑（trouble 为空 → 0）', S.troubleWords(tw, ts2, { threshold: 3, days: 7, now: T0 }).length === 0);
+ok('没有历史记录的词不进来', S.troubleWords([{ w: 'z', y: [] }], ts2, { threshold: 3, days: 0, now: T0 }).length === 0);
+
+console.log('— 常错词：老数据迁移 —');
+const oldStore = {
+  trouble: {
+    '2026-10-22': { x: [3, 1], y: [1, 0] },
+    '2026-10-23': { x: [4, 0] }
+  }
+};
+S.migrateTroubleAll(oldStore);
+ok('迁移后生成累计表', !!oldStore.troubleAll && Object.keys(oldStore.troubleAll).length === 2);
+ok('x：累计忘记 7、模糊 1、出现 2 天、单日最多 4',
+  JSON.stringify(oldStore.troubleAll.x.slice(0, 4)) === '[7,1,2,4]', JSON.stringify(oldStore.troubleAll.x));
+ok('y：累计忘记 1、出现 1 天', oldStore.troubleAll.y[0] === 1 && oldStore.troubleAll.y[2] === 1);
+ok('最近一次取较晚的日期（10-23）', new Date(oldStore.troubleAll.x[4]).getDate() === 23,
+  String(oldStore.troubleAll.x[4]));
+ok('已有累计表时不会重复累加', (function () {
+  S.migrateTroubleAll(oldStore);
+  return oldStore.troubleAll.x[0] === 7;
+})(), JSON.stringify(oldStore.troubleAll.x));
+
 console.log('\n通过 ' + pass + ' 项，失败 ' + fail + ' 项');
 process.exit(fail ? 1 : 0);

@@ -61,7 +61,9 @@
     opts = opts || {};
     var now = opts.now == null ? Date.now() : opts.now;
     var thr = opts.threshold == null ? 3 : opts.threshold;
-    var span = opts.days == null ? 1 : Math.max(1, opts.days);
+    var span = opts.days == null ? 1 : opts.days;
+    if (span === 0 || span === 'all') return troubleAllTime(words, store, thr);
+    span = Math.max(1, span);
     var tl = store.trouble || {};
     var keys = [];
     for (var i = 0; i < span; i++) keys.push(todayKey(now - i * DAY));
@@ -86,6 +88,51 @@
       return (b.worst - a.worst) || (b.forgot - a.forgot) || (a.id < b.id ? -1 : 1);
     });
     return res;
+  }
+
+  /* 历史全部：按累计忘记次数排（数据来自逐词累计表，不受逐日记录清理影响） */
+  function troubleAllTime(words, store, thr) {
+    var ta = store.troubleAll || {};
+    var res = [];
+    for (var i = 0; i < words.length; i++) {
+      var w = words[i], rec = ta[w.w];
+      if (!rec) continue;
+      /* 注意：时间戳是 13 位毫秒，不能用 |0（会截断成 32 位） */
+      var f = rec[0] | 0, v = rec[1] | 0, dc = rec[2] | 0, mx = rec[3] | 0;
+      var last = Number(rec[4]) || 0;
+      if (mx < thr) continue;          /* 曾经某天达到过阈值，才算常错词 */
+      res.push({
+        w: w, id: w.w, forgot: f, vague: v, worst: mx,
+        dayCount: dc, last: last, days: [], allTime: true
+      });
+    }
+    res.sort(function (a, b) {
+      return (b.forgot - a.forgot) || (b.worst - a.worst) || (a.id < b.id ? -1 : 1);
+    });
+    return res;
+  }
+
+  /* 老数据迁移：把逐日记录汇总成逐词累计表（只跑一次，之后靠增量累加） */
+  function migrateTroubleAll(store) {
+    if (store.troubleAll) return store.troubleAll;
+    store.troubleAll = {};
+    var days = store.trouble || {};
+    var keys = Object.keys(days);
+    for (var i = 0; i < keys.length; i++) {
+      var recs = days[keys[i]] || {};
+      var ids = Object.keys(recs);
+      for (var j = 0; j < ids.length; j++) {
+        var rec = recs[ids[j]] || [0, 0];
+        var a = store.troubleAll[ids[j]] || (store.troubleAll[ids[j]] = [0, 0, 0, 0, 0]);
+        a[0] += rec[0] || 0;
+        a[1] += rec[1] || 0;
+        a[2] += 1;
+        if ((rec[0] || 0) > a[3]) a[3] = rec[0] || 0;
+        var ts = new Date(keys[i] + 'T12:00:00').getTime();
+        if (ts > a[4]) a[4] = ts;
+      }
+    }
+    return store.troubleAll;
   }
 
   var GRADE_LABEL = ['忘记', '模糊', '认识', '太简单'];
@@ -434,7 +481,8 @@
     memoryStrength: memoryStrength, masteryScore: masteryScore,
     schedule: schedule, scheduleRaw: scheduleRaw,
     focusWeight: focusWeight, isFocus: isFocus,
-    troubleWords: troubleWords,
+    troubleWords: troubleWords, troubleAllTime: troubleAllTime,
+    migrateTroubleAll: migrateTroubleAll,
     previewIntervals: previewIntervals, humanizeDelta: humanizeDelta,
     buildQueue: buildQueue, summarize: summarize, streak: streak, forecast: forecast,
     makePlan: makePlan

@@ -28,7 +28,8 @@
   /* ---------- 存储 ---------- */
   var store, lsOK = true, saveTimer = null;
   function defStore() {
-    return { v: 1, settings: {}, cards: {}, log: {}, groups: {}, custom: [], hist: {}, trouble: {}, created: Date.now() };
+    return { v: 1, settings: {}, cards: {}, log: {}, groups: {}, custom: [], hist: {},
+             trouble: {}, troubleAll: {}, created: Date.now() };
   }
   function load() {
     var raw = null;
@@ -41,6 +42,7 @@
     store.custom = store.custom || [];
     store.hist = store.hist || {};
     store.trouble = store.trouble || {};
+    S.migrateTroubleAll(store);
     if (!store.settings.examDate) store.settings.examDate = isoDate(Date.now() + 60 * 86400000);
     if (!store.settings.focusYears) store.settings.focusYears = (DATA.focusYears || []).slice();
     if (store.settings.focusWeight == null) store.settings.focusWeight = 0.6;
@@ -215,7 +217,7 @@
     if (k === 'trouble') {
       return S.troubleWords(WORDS, store, {
         threshold: store.settings.troubleThreshold || 3,
-        days: ui.troubleDays || 1
+        days: ui.troubleDays == null ? 1 : ui.troubleDays
       }).map(function (x) { return x.w; });
     }
     if (k === 'weak') {
@@ -308,8 +310,16 @@
     var k = S.todayKey(now);
     store.trouble = store.trouble || {};
     var day = store.trouble[k] || (store.trouble[k] = {});
+    var existed = !!day[id];
     var rec = day[id] || (day[id] = [0, 0]);
     rec[g === 0 ? 0 : 1]++;
+    /* 历史累计：忘记/模糊总数、出现天数、单日最多、最近一次 */
+    store.troubleAll = store.troubleAll || {};
+    var all = store.troubleAll[id] || (store.troubleAll[id] = [0, 0, 0, 0, 0]);
+    all[g === 0 ? 0 : 1]++;
+    if (!existed) all[2]++;
+    if (rec[0] > all[3]) all[3] = rec[0];
+    all[4] = now;
     var keep = {};
     for (var i = 0; i < 14; i++) {
       var kk = S.todayKey(now - i * 86400000);
@@ -621,12 +631,13 @@
   function troubleHtml() {
     var now = Date.now();
     var thr = store.settings.troubleThreshold || 3;
-    var days = ui.troubleDays || 1;
+    var days = ui.troubleDays == null ? 1 : ui.troubleDays;
+    var allTime = days === 0;
     var list = S.troubleWords(WORDS, store, { threshold: thr, days: days, now: now });
     var h = [];
     h.push('<div class="tools" style="margin-top:18px">');
     h.push('<span class="chip hot">常错词 <b>' + list.length + '</b> 个</span>');
-    h.push('<div class="tabs" style="margin:0">' + [[1, '今天'], [7, '近 7 天']].map(function (o) {
+    h.push('<div class="tabs" style="margin:0">' + [[1, '今天'], [7, '近 7 天'], [0, '全部']].map(function (o) {
       return '<button data-act="troubleDays" data-val="' + o[0] + '"' + (days === o[0] ? ' class="on"' : '') + '>' + o[1] + '</button>';
     }).join('') + '</div>');
     h.push('<span style="flex:1"></span>');
@@ -636,18 +647,39 @@
     h.push('</div>');
     if (!list.length) {
       h.push('<div class="panel pad" style="margin-top:6px">');
-      h.push('<div style="font-size:17px;font-weight:650">' + (days === 1 ? '今天还没有常错词' : '近 7 天还没有常错词') + '</div>');
+      h.push('<div style="font-size:17px;font-weight:650">' +
+        (allTime ? '还没有任何常错记录' : days === 1 ? '今天还没有常错词' : '近 7 天还没有常错词') + '</div>');
       h.push('<div class="meta" style="margin-top:8px">同一个词当天点满 ' + thr +
-        ' 次「忘记」，它就会自动进这里 —— 可以把当天的硬骨头集中再背一遍。</div>');
+        ' 次「忘记」，它就会自动进这里 —— 可以把当天的硬骨头集中再背一遍。' +
+        (allTime ? '历史记录不会被清掉。' : '') + '</div>');
       var week = days === 1 ? S.troubleWords(WORDS, store, { threshold: thr, days: 7, now: now }) : [];
-      if (week.length) {
+      if (week.length && !allTime) {
         h.push('<div class="meta" style="margin-top:8px">近 7 天累计有 <b>' + week.length + '</b> 个词达标，切到「近 7 天」能看到。</div>');
       }
       h.push('</div>');
       return h.join('');
     }
     h.push('<div class="tools"><button class="btn primary" data-act="troubleStart">开始背这 ' + list.length + ' 个词</button>');
-    h.push('<span class="meta">按忘记次数从多到少排；背的时候正常评分，次数会继续累加。</span></div>');
+    h.push('<span class="meta">' + (allTime
+      ? '历史累计，从你第一次背词开始算；按累计忘记次数排。'
+      : '按忘记次数从多到少排；背的时候正常评分，次数会继续累加。') + '</span></div>');
+    if (allTime) {
+      h.push('<div class="panel" style="overflow:hidden"><table><thead><tr><th>单词</th><th>你的笔记</th><th>累计忘记</th><th>出现</th><th>状态</th><th>最近一次</th></tr></thead><tbody>');
+      list.forEach(function (x) {
+        var w = x.w, st = cardStateText(store.cards[x.id]);
+        h.push('<tr><td class="w">' + esc(w.w) + (w.ph ? '<div class="meta">/' + esc(w.ph) + '/</div>' : '') + '</td>');
+        h.push('<td>' + esc(w.own || '—') + '<div class="meta">' + ((w.y || []).join('/') || '补充') +
+          (w.att ? ' · 态度词' : '') + '</div></td>');
+        h.push('<td><b style="color:var(--bad);font-size:17px">' + x.forgot + '</b> 次' +
+          (x.vague ? '<div class="meta">模糊 ' + x.vague + ' 次</div>' : '') +
+          '<div class="meta">最多一天 ' + x.worst + ' 次</div></td>');
+        h.push('<td>' + x.dayCount + ' 天</td>');
+        h.push('<td><span class="' + st[1] + '">' + st[0] + '</span></td>');
+        h.push('<td>' + md(x.last) + '</td></tr>');
+      });
+      h.push('</tbody></table></div>');
+      return h.join('');
+    }
     h.push('<div class="panel" style="overflow:hidden"><table><thead><tr><th>单词</th><th>你的笔记</th><th>忘记</th><th>状态</th></tr></thead><tbody>');
     list.forEach(function (x) {
       var w = x.w, c = store.cards[x.id];
@@ -1193,7 +1225,11 @@
       render();
     }
     else if (act === 'chartdays') { ui.chartDays = parseInt(val, 10) || 30; render(); }
-    else if (act === 'troubleDays') { ui.troubleDays = parseInt(val, 10) || 1; render(); }
+    else if (act === 'troubleDays') {
+      var td = parseInt(val, 10);
+      ui.troubleDays = isNaN(td) ? 1 : td;
+      render();
+    }
     else if (act === 'troubleStart') {
       ui.deck = 'trouble'; ui.view = 'review';
       document.querySelectorAll('#tabs button').forEach(function (x) {
